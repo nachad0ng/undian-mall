@@ -1,0 +1,160 @@
+:root {
+    --bs-primary: #0066cc;
+    --bs-secondary: #6c757d;
+    --bs-success: #198754;
+    --bs-danger: #dc3545;
+    --bs-warning: #ffc107;
+    --bs-info: #0dcaf0;
+    --bs-light: #f8f9fa;
+    --bs-dark: #212529;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    background-color: #f5f7fb;
+    color: #212529;
+}
+
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+    color: #0066cc !important;
+}
+
+.sidebar {
+    background-color: white;
+    min-height: calc(100vh - 60px);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
+    border-right: 1px solid #e9ecef;
+}
+
+.sidebar .nav-link {
+    color: #6c757d;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #0066cc;
+}
+
+.sidebar .nav-link.active {
+    background-color: #e7f1ff;
+    color: #0066cc;
+    font-weight: 600;
+}
+
+.main-content {
+    padding: 20px;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #212529;
+}
+
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #0066cc;
+    border-color: #0066cc;
+}
+
+.btn-primary:hover {
+    background-color: #0052a3;
+    border-color: #0052a3;
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    padding: 10px 12px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+}
+
+.table {
+    background-color: white;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+
+    .page-title {
+        font-size: 1.2rem;
+    }
+}
