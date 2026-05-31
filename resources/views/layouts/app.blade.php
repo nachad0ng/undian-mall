@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title', 'Mall Lucky Draw')</title>
+    <title>@yield('title', 'Mall Lucky Draw') - Mall Lucky Draw Management System</title>
 
-    <!-- Bootstrap CSS dari CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tabler CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/demo.min.css">
+    
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
     <!-- DataTables CSS -->
@@ -15,6 +18,7 @@
     
     <!-- Select2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5.min.css">
     
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css">
@@ -22,42 +26,17 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background-color: #f5f7fb;
-            padding-top: 60px;
         }
 
-        .navbar {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        .sidebar-nav .nav-link {
+            border-radius: 6px;
+            margin-bottom: 4px;
         }
 
-        .sidebar {
-            background-color: white;
-            min-height: calc(100vh - 60px);
-            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
-        }
-
-        .sidebar .nav-link {
-            color: #6c757d;
-            border-radius: 8px;
-            padding: 10px 15px;
-            margin-bottom: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar .nav-link:hover {
-            background-color: #f8f9fa;
-            color: #0066cc;
-        }
-
-        .sidebar .nav-link.active {
-            background-color: #e7f1ff;
+        .sidebar-nav .nav-link.active {
+            background-color: rgba(0, 102, 204, 0.1);
             color: #0066cc;
             font-weight: 600;
-        }
-
-        .main-content {
-            padding: 20px;
         }
 
         .page-title {
@@ -65,70 +44,97 @@
             font-weight: 600;
             margin-bottom: 20px;
         }
-
-        .card {
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        }
     </style>
 
     @stack('styles')
 </head>
-<body>
+<body class="border-top-wide border-primary d-flex flex-column antialiased">
     @auth
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
-                    <i class="bi bi-gift-fill"></i> Mall Lucky Draw
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <header class="navbar navbar-expand-md d-print-none sticky-top">
+            <div class="container-xl">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle"></i> {{ auth()->user()->name }}
+                <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                    <a href="{{ route('dashboard') }}">
+                        <i class="bi bi-gift-fill" style="font-size: 1.5rem; color: #0066cc;"></i> Mall Lucky Draw
+                    </a>
+                </h1>
+                <div class="navbar-nav flex-row order-md-last">
+                    <div class="nav-item d-none d-md-flex me-3">
+                        <div class="btn-list flex-nowrap">
+                            <a href="https://github.com/nachad0ng/undian-mall" class="btn" target="_blank" rel="noreferrer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 -4v4m0 0v4m0 -11v-4m0 0a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1m0 0v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1 -1m6 -1a1 1 0 0 0 1 -1v-4a1 1 0 0 0 -1 -1m0 0v-4a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1m-9 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1 -1m0 0v-4a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1m0 4v4"/>
+                                </svg>
+                                Source Code
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="#">Profile</a></li>
-                                <li><a class="dropdown-item" href="#">Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#navbar-notifications" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Show notifications">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bell" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a6 6 0 0 0 5 5.9v1.1a2 2 0 0 1 -4 0h-8a2 2 0 0 1 -4 0v-1.1a6 6 0 0 0 5 -5.9v-3a7 7 0 0 1 4 -6"/>
+                                <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
+                            <span class="avatar avatar-sm" style="background-image: url(https://avatars.githubusercontent.com/u/66051499?v=4)"></span>
+                            <div class="d-none d-xl-block ps-2">
+                                <div>{{ auth()->user()->name }}</div>
+                                <div class="mt-1 small text-secondary">{{ auth()->user()->getRoleNames()->first() ?? 'User' }}</div>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                            <a href="#" class="dropdown-item">Profile</a>
+                            <a href="#" class="dropdown-item">Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Sign out</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </nav>
+        </header>
 
-        <!-- Main Content -->
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="sidebar">
-                        <nav class="nav flex-column p-3">
-                            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                                <i class="bi bi-house-fill"></i> Dashboard
-                            </a>
-                        </nav>
+        <div class="navbar-expand-md">
+            <div class="collapse navbar-collapse" id="navbar-menu">
+                <div class="navbar navbar-light">
+                    <div class="container-xl">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" role="button">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                            <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"/>
+                                            <line x1="12" y1="12" x2="20" y2="7.5"/>
+                                            <line x1="12" y1="12" x2="12" y2="21"/>
+                                            <line x1="12" y1="12" x2="4" y2="7.5"/>
+                                        </svg>
+                                    </span>
+                                    <span class="nav-link-title">Dashboard</span>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-                <div class="col-md-9">
-                    <div class="main-content">
-                        @yield('content')
-                    </div>
+            </div>
+        </div>
+
+        <!-- Page wrapper -->
+        <div class="page">
+            <!-- Page body -->
+            <div class="page-wrapper">
+                <div class="container-xl">
+                    @yield('content')
                 </div>
             </div>
         </div>
@@ -138,10 +144,13 @@
         @yield('content')
     @endguest
 
-    <!-- jQuery (HARUS DIMUAT DULUAN) -->
+    <!-- Tabler Core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
+    
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
-    <!-- Bootstrap JS (HARUS SETELAH JQUERY) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- DataTables JS -->
@@ -154,16 +163,9 @@
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.js"></script>
 
-    <!-- Global Scripts -->
     <script>
         // Initialize Bootstrap components
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize dropdowns explicitly
-            var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
-            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-                return new bootstrap.Dropdown(dropdownToggleEl);
-            });
-
             // Initialize Select2
             if (jQuery && jQuery.fn.select2) {
                 jQuery('.select2').select2({
