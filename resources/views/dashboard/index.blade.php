@@ -3,10 +3,9 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    <!-- Page title -->
-    <div class="page-wrapper">
-        <!-- Page body -->
-        <div class="page-body">
+    <!-- Page body -->
+    <div class="page-body">        
+        <div class="container-xl">
             <div class="row row-deck row-cards">
                 <div class="col-12">
                     <div class="alert alert-important alert-info" role="alert">
