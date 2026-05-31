@@ -58,18 +58,18 @@
                 </button>
                 <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
                     <a href="{{ route('dashboard') }}">
-                        <i class="bi bi-gift-fill" style="font-size: 1.5rem; color: #0066cc;"></i> Mall Lucky Draw
+                        <i class="bi bi-gift-fill" style="font-size: 1.5rem; color: #0066cc;"></i>
+                        <span class="d-none d-md-inline">Mall Lucky Draw</span>
                     </a>
                 </h1>
                 <div class="navbar-nav flex-row order-md-last">
                     <div class="nav-item d-none d-md-flex me-3">
                         <div class="btn-list flex-nowrap">
-                            <a href="https://github.com/nachad0ng/undian-mall" class="btn" target="_blank" rel="noreferrer">
+                            <a href="https://github.com/nachad0ng/undian-mall" class="btn btn-icon" target="_blank" rel="noreferrer" title="Source Code">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                     <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 -4v4m0 0v4m0 -11v-4m0 0a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1m0 0v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1 -1m6 -1a1 1 0 0 0 1 -1v-4a1 1 0 0 0 -1 -1m0 0v-4a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1m-9 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1 -1m0 0v-4a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1m0 4v4"/>
                                 </svg>
-                                Source Code
                             </a>
                         </div>
                     </div>
@@ -80,7 +80,15 @@
                                 <path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a6 6 0 0 0 5 5.9v1.1a2 2 0 0 1 -4 0h-8a2 2 0 0 1 -4 0v-1.1a6 6 0 0 0 5 -5.9v-3a7 7 0 0 1 4 -6"/>
                                 <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
                             </svg>
+                            <span class="badge bg-red"></span>
                         </a>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-card" style="display: none;">
+                            <div class="card">
+                                <div class="card-body">
+                                    No new notifications
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
@@ -94,7 +102,7 @@
                             <a href="#" class="dropdown-item">Profile</a>
                             <a href="#" class="dropdown-item">Settings</a>
                             <div class="dropdown-divider"></div>
-                            <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                            <form action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="dropdown-item">Sign out</button>
                             </form>
@@ -144,14 +152,14 @@
         @yield('content')
     @endguest
 
-    <!-- Tabler Core JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
-    
-    <!-- jQuery -->
+    <!-- jQuery (Load First) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Tabler Core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
     
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
@@ -164,18 +172,37 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.js"></script>
 
     <script>
-        // Initialize Bootstrap components
+        // Initialize components after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Select2
-            if (jQuery && jQuery.fn.select2) {
+            // Fix Tabler navbar toggle for mobile
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            if (navbarToggler) {
+                navbarToggler.addEventListener('click', function() {
+                    const target = document.getElementById('navbar-menu');
+                    if (target) {
+                        target.classList.toggle('show');
+                    }
+                });
+            }
+
+            // Initialize Bootstrap Dropdowns
+            const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+            dropdownElements.forEach(element => {
+                new bootstrap.Dropdown(element, {
+                    autoClose: true
+                });
+            });
+
+            // Select2 initialization
+            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
                 jQuery('.select2').select2({
                     theme: 'bootstrap-5',
                     width: '100%',
                 });
             }
 
-            // Initialize DataTables
-            if (jQuery && jQuery.fn.dataTable) {
+            // DataTables initialization
+            if (typeof jQuery !== 'undefined' && jQuery.fn.dataTable) {
                 jQuery('.datatable').DataTable({
                     responsive: true,
                     language: {
