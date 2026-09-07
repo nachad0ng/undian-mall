@@ -8,42 +8,36 @@ use App\Http\Requests\UpdateRoleRequest;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 
 class RoleController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('permission:manage-roles');
-    }
-
     /**
      * Display a listing of the roles.
      */
     public function index(Request $request)
     {
-        $query = Role::query();
+        if ($request->wantsJson()) {
+        
+            $query = Role::withCount('permissions');
 
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where('name', 'like', "%{$search}%");
+            return DataTables::eloquent($query)
+                ->addColumn('permissions_badge', function ($role) {
+                    return $role->permissions_count;
+                })
+                ->addColumn('actions', function ($role) {
+                    return [
+                        'edit_url'   => route('admin.roles.edit', $role),
+                        'delete_url' => route('admin.roles.destroy', $role),
+                    ];
+                })
+                ->editColumn('created_at', fn($role) => $role->created_at->format('d M Y H:i'))
+                //->rawColumns([]) // tidak perlu raw karena render di JS
+                ->make(true);
         }
 
-        // Sort
-        $sortBy = $request->input('sort_by', 'created_at');
-        $sortOrder = $request->input('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        $roles = $query->paginate(10);
-
-        return view('admin.roles.index', [
-            'roles' => $roles,
-            'search' => $request->input('search', ''),
-        ]);
+        return view('admin.roles.index');
     }
 
     /**
@@ -65,19 +59,29 @@ class RoleController extends Controller
     {
         $validated = $request->validated();
 
-        // Create role
-        $role = Role::create([
-            'name' => $validated['name'],
-            'guard_name' => 'web',
-        ]);
+        DB::beginTransaction();
 
-        // Sync permissions
-        if (!empty($validated['permissions'])) {
-            $role->syncPermissions($validated['permissions']);
+        try {
+            // Create role
+            $role = Role::create([
+                'name' => $validated['name'],
+                'guard_name' => 'web',
+            ]);
+
+            // Sync permissions
+            if (!empty($validated['permissions'])) {
+                $permissions = Permission::whereIn('id', $validated['permissions'])->get();
+                $role->syncPermissions($permissions);
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.roles.index')
+                ->with('success', "Role '{$role->name}' berhasil dibuat.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', "Role '{$validated['name']}' gagal dibuat: " . $e->getMessage());
         }
-
-        return redirect()->route('admin.roles.index')
-            ->with('success', "Role '{$role->name}' berhasil dibuat.");
     }
 
     /**
@@ -123,15 +127,26 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
+
         // Prevent deleting system roles
-        if (in_array($role->name, ['Super Admin', 'Manager', 'Customer Service', 'Auditor'])) {
-            return back()->with('error', "Tidak dapat menghapus role system '{$role->name}'.");
+        if (in_array($role->name, [
+            'Super Admin', 
+            'Manager', 
+            'Customer Service', 
+            'Auditor'
+        ])) {
+            return response()->json([
+                'success' => false,
+                'message' => "Tidak dapat menghapus role system '{$role->name}'.",
+            ], 422);
         }
 
         $roleName = $role->name;
         $role->delete();
 
-        return redirect()->route('admin.roles.index')
-            ->with('success', "Role '{$roleName}' berhasil dihapus.");
+        return response()->json([
+            'success' => true,
+            'message' => "Role '{$roleName}' berhasil dihapus.",
+        ]);
     }
 }

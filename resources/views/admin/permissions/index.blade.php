@@ -3,8 +3,9 @@
 @section('title', 'Manage Permissions')
 
 @section('content')
-    <div class="page-wrapper">
-        <div class="page-body">
+<div class="page-wrapper">
+    <div class="page-body">
+        <div class="container-xl">
             <div class="row mb-3 align-items-center">
                 <div class="col">
                     <h2 class="page-title">Manage Permissions</h2>
@@ -83,7 +84,7 @@
                                             <form method="POST" action="{{ route('admin.permissions.destroy', $permission) }}" style="display: inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" class="btn btn-icon btn-ghost-danger" title="Delete" onclick="confirmDelete('{{ route('admin.permissions.destroy', $permission) }}')">
+                                                <button type="button" class="btn btn-icon btn-ghost-danger" title="Delete" onclick="">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                                         <line x1="4" y1="7" x2="20" y2="7"/>
@@ -120,4 +121,5 @@
             </div>
         </div>
     </div>
+</div>
 @endsection

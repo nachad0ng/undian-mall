@@ -11,15 +11,6 @@ use Illuminate\Http\Request;
 class PermissionController extends Controller
 {
     /**
-     * Create a new controller instance.
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('permission:manage-permissions');
-    }
-
-    /**
      * Display a listing of the permissions.
      */
     public function index(Request $request)

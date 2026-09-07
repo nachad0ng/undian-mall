@@ -3,8 +3,9 @@
 @section('title', 'Create Role')
 
 @section('content')
-    <div class="page-wrapper">
-        <div class="page-body">
+<div class="page-wrapper">
+    <div class="page-body">
+        <div class="container-xl">
             <div class="row mb-3">
                 <div class="col">
                     <h2 class="page-title">Create New Role</h2>
@@ -58,4 +59,5 @@
             </div>
         </div>
     </div>
+</div>
 @endsection
