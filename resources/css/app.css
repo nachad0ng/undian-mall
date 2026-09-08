@@ -1,3 +1,9 @@
+@import '@tabler/core/dist/css/tabler.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import 'select2/dist/css/select2.min.css';
+@import 'sweetalert2/dist/sweetalert2.min.css';
+@import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+
 :root {
     --bs-primary: #0066cc;
     --bs-secondary: #6c757d;

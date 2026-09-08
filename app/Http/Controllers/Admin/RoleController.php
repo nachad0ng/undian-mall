@@ -30,6 +30,12 @@ class RoleController extends Controller
                     return [
                         'edit_url'   => route('admin.roles.edit', $role),
                         'delete_url' => route('admin.roles.destroy', $role),
+                        'is_system'  => in_array($role->name, [
+                            'Super Admin',
+                            'Manager',
+                            'Customer Service',
+                            'Auditor',
+                        ]),
                     ];
                 })
                 ->editColumn('created_at', fn($role) => $role->created_at->format('d M Y H:i'))
@@ -106,20 +112,28 @@ class RoleController extends Controller
     {
         $validated = $request->validated();
 
-        // Update role
-        $role->update([
-            'name' => $validated['name'],
-        ]);
+        DB::beginTransaction();
 
-        // Sync permissions
-        if (!empty($validated['permissions'])) {
-            $role->syncPermissions($validated['permissions']);
-        } else {
-            $role->syncPermissions([]);
+        try {
+            // Update role
+            $role->update([
+                'name' => $validated['name'],
+            ]);
+
+            // Sync permissions
+            $permissions = !empty($validated['permissions'])
+                ? Permission::whereIn('id', $validated['permissions'])->get()
+                : [];
+            $role->syncPermissions($permissions);
+
+            DB::commit();
+
+            return redirect()->route('admin.roles.index')
+                ->with('success', "Role '{$role->name}' berhasil diperbarui.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', "Role '{$role->name}' gagal diperbarui: " . $e->getMessage());
         }
-
-        return redirect()->route('admin.roles.index')
-            ->with('success', "Role '{$role->name}' berhasil diperbarui.");
     }
 
     /**

@@ -55,4 +55,14 @@ class User extends Authenticatable
      * @return string
      */
     protected string $guard_name = 'web';
+
+    public function purchasesEntered(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Purchase::class, 'entered_by');
+    }
+
+    public function drawingsExecuted(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Drawing::class, 'executed_by');
+    }
 }

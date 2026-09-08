@@ -1,5 +1,13 @@
-// Initialize Bootstrap
+import $ from 'jquery';
 import * as bootstrap from 'bootstrap';
+import 'select2';
+import Swal from 'sweetalert2';
+import 'datatables.net-bs5';
+
+window.$ = $;
+window.jQuery = $;
+window.bootstrap = bootstrap;
+window.Swal = Swal;
 
 // Global JavaScript functions
 document.addEventListener('DOMContentLoaded', function () {
@@ -14,28 +22,42 @@ document.addEventListener('DOMContentLoaded', function () {
         return new bootstrap.Popover(popoverTriggerEl);
     });
 
-    // Initialize Select2
-    if (jQuery) {
-        jQuery('.select2').select2({
+    if ($.fn.select2) {
+        $('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
         });
     }
 
-    // Initialize DataTables
-    if (jQuery.fn.dataTable) {
-        jQuery('.datatable').DataTable({
+    if ($.fn.dataTable) {
+        $('.datatable').DataTable({
             responsive: true,
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.8/i18n/id.json',
+                emptyTable: 'Tidak ada data yang tersedia',
+                info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
+                infoEmpty: 'Menampilkan 0 sampai 0 dari 0 data',
+                infoFiltered: '(disaring dari _MAX_ total data)',
+                lengthMenu: 'Tampilkan _MENU_ data',
+                loadingRecords: 'Memuat...',
+                processing: 'Memproses...',
+                search: 'Cari:',
+                zeroRecords: 'Data tidak ditemukan',
+                paginate: {
+                    first: 'Pertama',
+                    last: 'Terakhir',
+                    next: 'Berikutnya',
+                    previous: 'Sebelumnya',
+                },
             },
         });
     }
 });
 
 // Utility function for SweetAlert2 confirmation
-window.confirmDelete = function (url) {
-    const Swal = window.Swal || require('sweetalert2').default;
+window.confirmDelete = function (event) {
+    event.preventDefault();
+    const form = event.target.closest('form');
+
     Swal.fire({
         title: 'Konfirmasi Hapus',
         text: 'Apakah Anda yakin ingin menghapus data ini?',
@@ -47,14 +69,15 @@ window.confirmDelete = function (url) {
         cancelButtonText: 'Batal',
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = url;
+            form.submit();
         }
     });
+
+    return false;
 };
 
 // Utility function for showing alerts
 window.showAlert = function (title, message, type = 'info') {
-    const Swal = window.Swal || require('sweetalert2').default;
     Swal.fire({
         title: title,
         text: message,

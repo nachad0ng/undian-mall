@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Login - Mall Lucky Draw Management System</title>
 
-    <!-- Tabler CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         html,
@@ -33,6 +30,7 @@
         }
     </style>
 </head>
+
 <body class="d-flex flex-column">
     <div class="page page-center">
         <div class="container-tight py-4">
@@ -66,7 +64,8 @@
 
                         <div class="mb-3">
                             <label class="form-label">Email address</label>
-                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required autofocus>
+                            <input type="email" name="email" class="form-control" value="{{ old('email') }}"
+                                required autofocus>
                         </div>
 
                         <div class="mb-3">
@@ -93,10 +92,6 @@
         </div>
     </div>
 
-    <!-- Tabler Core JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

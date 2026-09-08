@@ -34,7 +34,7 @@
                                             @foreach ($chunk as $permission)
                                                 <div class="col-md-6">
                                                     <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="permission_{{ $permission->id }}">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="permission_{{ $permission->id }}" {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="permission_{{ $permission->id }}">
                                                             {{ $permission->name }}
                                                         </label>
