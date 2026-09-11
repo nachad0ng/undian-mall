@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('drawing_id')->constrained('drawings')->cascadeOnDelete();
             $table->foreignId('raffle_period_id')->constrained('raffle_periods')->restrictOnDelete();
             $table->foreignId('prize_id')->constrained('prizes')->restrictOnDelete();
-            $table->foreignId('coupon_id')->unique()->constrained('coupons')->restrictOnDelete()->comment('1 kupon hanya dapat memenangkan 1 hadiah');
             $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->dateTime('won_at');
             $table->boolean('is_published')->default(false);

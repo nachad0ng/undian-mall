@@ -20,21 +20,9 @@ class RafflePeriodFactory extends Factory
             'description' => fake()->sentence(),
             'start_at' => $start,
             'end_at' => now()->addDays(10)->endOfDay(),
-            'purchase_threshold' => 100000,
-            'coupon_unit' => 100000,
-            'max_coupon_per_transaction' => 10,
             'status' => 'draft',
             'drawing_status' => 'pending',
         ];
-    }
-
-    public function withoutCouponRule(): static
-    {
-        return $this->state(fn () => [
-            'purchase_threshold' => 0,
-            'coupon_unit' => 0,
-            'status' => 'draft',
-        ]);
     }
 
     public function active(): static

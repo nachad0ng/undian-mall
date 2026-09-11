@@ -77,41 +77,24 @@
                 <ul class="navbar-nav">
                     <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('dashboard') }}" role="button">
-                            <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24"
-                                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                    <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3" />
-                                    <line x1="12" y1="12" x2="20" y2="7.5" />
-                                    <line x1="12" y1="12" x2="12" y2="21" />
-                                    <line x1="12" y1="12" x2="4" y2="7.5" />
-                                </svg>
+                            <span class="nav-link-icon">
+                                <i class="bi bi-house"></i>
                             </span>
                             <span class="nav-link-title">Dashboard</span>
                         </a>
                     </li>
+                    {{-- Master Data: Periode, Tenant, Hadiah, Tipe Pembayaran --}}
                     @if (auth()->user()->hasPermissionTo('manage-periods') ||
                             auth()->user()->hasPermissionTo('manage-tenants') ||
-                            auth()->user()->hasPermissionTo('manage-prizes'))
+                            auth()->user()->hasPermissionTo('manage-customers') ||
+                            auth()->user()->hasPermissionTo('manage-prizes') ||
+                            auth()->user()->hasPermissionTo('manage-payment-types'))
                         <li
-                            class="nav-item dropdown {{ request()->routeIs('admin.raffle-periods.*') || request()->routeIs('admin.tenants.*') || request()->routeIs('admin.prizes.*') ? 'active' : '' }}">
+                            class="nav-item dropdown {{ request()->routeIs('admin.raffle-periods.*') || request()->routeIs('admin.tenants.*') || request()->routeIs('admin.customers.*') || request()->routeIs('admin.prizes.*') || request()->routeIs('admin.payment-types.*') || request()->routeIs('admin.bonus-point-rules.*') ? 'active' : '' }}">
                             <a class="nav-link dropdown-toggle" href="#navbar-master" data-bs-toggle="dropdown"
                                 data-bs-auto-close="outside" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24"
-                                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path
-                                            d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" />
-                                        <path
-                                            d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" />
-                                        <path d="M9 12l.01 0" />
-                                        <path d="M13 12l2 0" />
-                                        <path d="M9 16l.01 0" />
-                                        <path d="M13 16l2 0" />
-                                    </svg>
+                                <span class="nav-link-icon">
+                                    <i class="bi bi-collection"></i>
                                 </span>
                                 <span class="nav-link-title">Master Data</span>
                             </a>
@@ -128,66 +111,82 @@
                                         Tenant
                                     </a>
                                 @endif
+                                @if (auth()->user()->hasPermissionTo('manage-customers'))
+                                    <a href="{{ route('admin.customers.index') }}"
+                                        class="dropdown-item {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
+                                        Pelanggan
+                                    </a>
+                                @endif
                                 @if (auth()->user()->hasPermissionTo('manage-prizes'))
                                     <a href="{{ route('admin.prizes.index') }}"
                                         class="dropdown-item {{ request()->routeIs('admin.prizes.*') ? 'active' : '' }}">
                                         Hadiah
                                     </a>
                                 @endif
+                                @if (auth()->user()->hasPermissionTo('manage-payment-types'))
+                                    <a href="{{ route('admin.payment-types.index') }}"
+                                        class="dropdown-item {{ request()->routeIs('admin.payment-types.*') ? 'active' : '' }}">
+                                        Tipe Pembayaran
+                                    </a>
+                                @endif
+                                @if (auth()->user()->hasPermissionTo('manage-prizes'))
+                                    <a href="{{ route('admin.bonus-point-rules.index') }}"
+                                        class="dropdown-item {{ request()->routeIs('admin.bonus-point-rules.*') ? 'active' : '' }}">
+                                        Bonus Poin Pembayaran
+                                    </a>
+                                @endif
                             </div>
                         </li>
                     @endif
-                    @if (auth()->user()->hasPermissionTo('manage-roles') || auth()->user()->hasPermissionTo('manage-permissions'))
+                    {{-- Transaction: Point Redemption --}}
+                    @if (auth()->user()->hasPermissionTo('manage-prizes'))
                         <li
-                            class="nav-item dropdown {{ request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
+                            class="nav-item dropdown {{ request()->routeIs('admin.point-exchange.*') ? 'active' : '' }}">
+                            <a class="nav-link dropdown-toggle" href="#navbar-transaction" data-bs-toggle="dropdown"
+                                data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                <span class="nav-link-icon">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </span>
+                                <span class="nav-link-title">Transaction</span>
+                            </a>
+                            <div class="dropdown-menu" data-bs-popper="none">
+                                <a href="{{ route('admin.point-exchange.history') }}"
+                                    class="dropdown-item {{ request()->routeIs('admin.point-exchange.*') ? 'active' : '' }}">
+                                    Tukar Struk & Riwayat
+                                </a>
+                            </div>
+                        </li>
+                    @endif
+                    {{-- Admin: Users, Roles, Permissions --}}
+                    @if (auth()->user()->hasPermissionTo('manage-users') ||
+                            auth()->user()->hasPermissionTo('manage-roles') ||
+                            auth()->user()->hasPermissionTo('manage-permissions'))
+                        <li
+                            class="nav-item dropdown {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
                             <a class="nav-link dropdown-toggle" href="#navbar-admin" data-bs-toggle="dropdown"
                                 data-bs-auto-close="outside" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24"
-                                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" />
-                                        <path d="M12 12l8 -4.5" />
-                                        <path d="M12 12l0 9" />
-                                        <path d="M12 12l-8 -4.5" />
-                                    </svg>
+                                <span class="nav-link-icon">
+                                    <i class="bi bi-gear-wide-connected"></i>
                                 </span>
                                 <span class="nav-link-title">Admin</span>
                             </a>
                             <div class="dropdown-menu" data-bs-popper="none">
+                                @if (auth()->user()->hasPermissionTo('manage-users'))
+                                    <a href="{{ route('admin.users.index') }}"
+                                        class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                        Users
+                                    </a>
+                                @endif
                                 @if (auth()->user()->hasPermissionTo('manage-roles'))
                                     <a href="{{ route('admin.roles.index') }}"
                                         class="dropdown-item {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-                                        <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon"
-                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                <path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9 -9 9s-9 -1.8 -9 -9s1.8 -9 9 -9" />
-                                                <path d="M12 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                                                <path
-                                                    d="M12 15.5c2 0 4 -1 4 -2.5s-2 -2.5 -4 -2.5s-4 1 -4 2.5s2 2.5 4 2.5" />
-                                            </svg>
-                                        </span>
-                                        <span>Roles</span>
+                                        Roles
                                     </a>
                                 @endif
                                 @if (auth()->user()->hasPermissionTo('manage-permissions'))
                                     <a href="{{ route('admin.permissions.index') }}"
                                         class="dropdown-item {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
-                                        <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon"
-                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                <path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9 -9 9s-9 -1.8 -9 -9s1.8 -9 9 -9" />
-                                                <path d="M12 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                                                <path
-                                                    d="M12 15.5c2 0 4 -1 4 -2.5s-2 -2.5 -4 -2.5s-4 1 -4 2.5s2 2.5 4 2.5" />
-                                            </svg>
-                                        </span>
-                                        <span>Permissions</span>
+                                        Permissions
                                     </a>
                                 @endif
                             </div>

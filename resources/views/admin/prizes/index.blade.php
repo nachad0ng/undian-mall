@@ -63,7 +63,7 @@
 @push('scripts')
     @include('layouts.plugins.datatables', ['ajax_same_page' => true])
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('load', function() {
             const $periodSelect = $('#filter-period');
             const $search = $('#filter-search');
             const isAllPeriods = () => $periodSelect.val() === '';

@@ -1,12 +1,17 @@
 <?php
 
+use App\Http\Controllers\Admin\BonusPointRuleController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\PaymentTypeController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PointExchangeController;
+use App\Http\Controllers\Admin\PrizeController;
+use App\Http\Controllers\Admin\RafflePeriodController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\RafflePeriodController;
-use App\Http\Controllers\Admin\TenantController;
-use App\Http\Controllers\Admin\PrizeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -24,6 +29,10 @@ Route::middleware('auth')->group(function () {
         Route::resource('roles', RoleController::class)
             ->except(['show'])
             ->middleware('permission:manage-roles');
+
+        // Users
+        Route::resource('users', UserController::class)
+            ->middleware('permission:manage-users');
 
         // Permissions
         Route::resource('permissions', PermissionController::class)
@@ -44,11 +53,59 @@ Route::middleware('auth')->group(function () {
         Route::resource('tenants', TenantController::class)
             ->middleware('permission:manage-tenants');
 
+        // Customers
+        Route::resource('customers', CustomerController::class)
+            ->middleware('permission:manage-customers');
+
         // Prizes
         Route::post('prizes/{prize}/move', [PrizeController::class, 'move'])
             ->name('prizes.move')
             ->middleware('permission:manage-prizes');
         Route::resource('prizes', PrizeController::class)
+            ->middleware('permission:manage-prizes');
+
+        // Payment Types
+        Route::post('payment-types/{payment_type}/toggle-status', [PaymentTypeController::class, 'toggleStatus'])
+            ->name('payment-types.toggle-status')
+            ->middleware('permission:manage-prizes');
+        Route::resource('payment-types', PaymentTypeController::class)
+            ->middleware('permission:manage-prizes');
+
+        // Bonus Point Rules
+        Route::post('bonus-point-rules/{bonus_point_rule}/toggle-status', [BonusPointRuleController::class, 'toggleStatus'])
+            ->name('bonus-point-rules.toggle-status')
+            ->middleware('permission:manage-prizes');
+        Route::resource('bonus-point-rules', BonusPointRuleController::class)
+            ->except(['show'])
+            ->middleware('permission:manage-prizes');
+
+        // POINT EXCHANGE (Refactor: rule per-Hadiah, bukan per-Event)
+        // Daftar hadiah aktif untuk periode (JSON, untuk consumer pilih hadiah)
+        Route::get('periods/{period}/active-prizes', [PointExchangeController::class, 'activePrizesForPeriod'])
+            ->name('periods.active-prizes')
+            ->middleware('permission:manage-prizes');
+
+        Route::get('customers/{customer}/purchases', [PointExchangeController::class, 'customerPurchases'])
+            ->name('customers.purchases')
+            ->middleware('permission:manage-prizes');
+
+        // Penukaran poin: customer pilih hadiah + serahkan struk
+        Route::post('point-exchange', [PointExchangeController::class, 'store'])
+            ->name('point-exchange.store')
+            ->middleware('permission:manage-prizes');
+
+        // Saldo poin customer per hadiah
+        Route::get('customers/{customer}/point-balances', [PointExchangeController::class, 'customerBalances'])
+            ->name('customers.point-balances')
+            ->middleware('permission:manage-users');
+
+        // History penukaran poin (admin)
+        Route::get('point-exchange', [PointExchangeController::class, 'history'])
+            ->name('point-exchange.history')
+            ->middleware('permission:manage-prizes');
+
+        Route::get('point-exchange/{redemption}', [PointExchangeController::class, 'show'])
+            ->name('point-exchange.show')
             ->middleware('permission:manage-prizes');
     });
 });

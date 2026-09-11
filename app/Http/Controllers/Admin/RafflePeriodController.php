@@ -14,7 +14,7 @@ class RafflePeriodController extends Controller
     public function index(Request $request)
     {
         if ($request->wantsJson()) {
-            $query = RafflePeriod::withCount(['prizes', 'purchases', 'coupons'])
+            $query = RafflePeriod::withCount(['prizes', 'purchases'])
                 ->orderByDesc('start_at');
 
             if ($request->filled('status')) {
@@ -62,7 +62,7 @@ class RafflePeriodController extends Controller
 
     public function show(RafflePeriod $rafflePeriod)
     {
-        $rafflePeriod->loadCount(['prizes', 'purchases', 'coupons', 'winners']);
+        $rafflePeriod->loadCount(['prizes', 'purchases', 'winners']);
         $prizes = $rafflePeriod->prizes()->orderBy('sequence', 'asc')->get();
 
         return view('admin.raffle-periods.show', [
@@ -114,7 +114,7 @@ class RafflePeriodController extends Controller
         }
 
         if (! $rafflePeriod->canBeActivated()) {
-            return back()->with('error', "Periode '{$rafflePeriod->name}' tidak dapat diaktifkan. Pastikan aturan kupon lengkap dan pengundian belum selesai.");
+            return back()->with('error', "Periode '{$rafflePeriod->name}' tidak dapat diaktifkan karena pengundian sudah selesai.");
         }
 
         $rafflePeriod->update(['status' => 'active']);

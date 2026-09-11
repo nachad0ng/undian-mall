@@ -18,11 +18,14 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->dateTime('start_at');
             $table->dateTime('end_at');
-            $table->unsignedBigInteger('purchase_threshold')->comment('Nilai minimal belanja dalam Rupiah untuk mendapatkan kupon');
-            $table->unsignedBigInteger('coupon_unit')->comment('Kelipatan belanja dalam Rupiah per 1 kupon');
-            $table->unsignedInteger('max_coupon_per_transaction')->nullable()->comment('Batas maksimal kupon per transaksi, null jika tidak dibatasi');
-            $table->string('status', 20)->default('active')->comment('draft, active, inactive, closed');
-            $table->string('drawing_status', 20)->default('pending')->comment('pending, in_progress, completed');
+            $table->dateTime('exchange_start_at')->nullable()
+                ->comment('Rentang boleh tukar struk ke CS (default sama dengan end_at)');
+            $table->dateTime('exchange_end_at')->nullable()
+                ->comment('Batas waktu penukaran struk (default sama dengan end_at)');
+            $table->string('status', 20)->default('active')
+                ->comment('draft, active, inactive, closed');
+            $table->string('drawing_status', 20)->default('pending')
+                ->comment('pending, in_progress, completed');
             $table->softDeletes();
             $table->timestamps();
 

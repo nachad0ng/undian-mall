@@ -24,7 +24,6 @@ class PurchaseFactory extends Factory
             'receipt_number' => 'INV-'.fake()->unique()->numerify('########'),
             'purchased_at' => now(),
             'amount' => 200000,
-            'total_coupons' => 2,
         ];
     }
 }

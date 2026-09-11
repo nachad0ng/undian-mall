@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Drawing;
 use App\Models\Prize;
@@ -10,7 +11,6 @@ use App\Models\RafflePeriod;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Winner;
-use App\Models\Coupon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -18,8 +18,11 @@ use Tests\TestCase;
 class DatabaseFoundationTest extends TestCase
 {
     protected User $user;
+
     protected RafflePeriod $period;
+
     protected Customer $customer;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -37,8 +40,6 @@ class DatabaseFoundationTest extends TestCase
                 'name' => 'Test Period 2026',
                 'start_at' => now()->startOfMonth(),
                 'end_at' => now()->endOfMonth(),
-                'purchase_threshold' => 100000,
-                'coupon_unit' => 100000,
                 'status' => 'active',
                 'drawing_status' => 'pending',
             ]
@@ -88,6 +89,7 @@ class DatabaseFoundationTest extends TestCase
             'raffle_period_id' => $this->period->id,
             'name' => 'Grand Prize Mobil Listrik',
             'quantity' => 1,
+            'nominal_per_poin' => 1000000,
             'sequence' => 1,
             'status' => 'active',
         ]);
@@ -103,7 +105,6 @@ class DatabaseFoundationTest extends TestCase
             'receipt_number' => 'INV-TEST-REL-001',
             'purchased_at' => now(),
             'amount' => 300000,
-            'total_coupons' => 3,
         ]);
         $this->assertEquals($this->period->id, $purchase->rafflePeriod->id);
         $this->assertEquals($this->customer->id, $purchase->customer->id);
@@ -179,7 +180,6 @@ class DatabaseFoundationTest extends TestCase
             'receipt_number' => $receiptNo,
             'purchased_at' => now(),
             'amount' => 500000,
-            'total_coupons' => 5,
         ]);
 
         $this->assertNotNull($p1->id);
@@ -196,7 +196,6 @@ class DatabaseFoundationTest extends TestCase
                 'receipt_number' => $receiptNo,
                 'purchased_at' => now(),
                 'amount' => 500000,
-                'total_coupons' => 5,
             ]);
         } finally {
             $p1->forceDelete();
@@ -220,7 +219,6 @@ class DatabaseFoundationTest extends TestCase
             'receipt_number' => $receiptNo,
             'purchased_at' => now(),
             'amount' => 200000,
-            'total_coupons' => 2,
         ]);
 
         $p2 = Purchase::create([
@@ -231,7 +229,6 @@ class DatabaseFoundationTest extends TestCase
             'receipt_number' => $receiptNo,
             'purchased_at' => now(),
             'amount' => 300000,
-            'total_coupons' => 3,
         ]);
 
         $this->assertNotNull($p1->id);
@@ -252,7 +249,6 @@ class DatabaseFoundationTest extends TestCase
             'receipt_number' => 'INV-CPN-TEST-001',
             'purchased_at' => now(),
             'amount' => 100000,
-            'total_coupons' => 1,
         ]);
 
         $c1 = Coupon::create([
@@ -294,7 +290,6 @@ class DatabaseFoundationTest extends TestCase
             'receipt_number' => 'INV-FK-INVALID',
             'purchased_at' => now(),
             'amount' => 100000,
-            'total_coupons' => 1,
         ]);
     }
 

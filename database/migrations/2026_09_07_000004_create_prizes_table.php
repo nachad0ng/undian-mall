@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('name', 255);
             $table->text('description')->nullable();
             $table->unsignedInteger('quantity')->default(1);
+            $table->unsignedBigInteger('nominal_per_poin')->nullable()->comment('Nilai belanja dalam Rupiah untuk 1 poin');
             $table->unsignedInteger('sequence')->default(1)->comment('Urutan undian / ranking hadiah, misal 1 untuk Hadiah Utama');
             $table->string('status', 20)->default('active')->comment('active, inactive');
+            $table->boolean('active_for_exchange')->default(true)->comment('Apakah hadiah bisa dipakai untuk tukar poin');
             $table->timestamps();
 
             $table->index(['raffle_period_id', 'sequence']);

@@ -108,12 +108,12 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof $ === 'undefined' || !$.fn.dataTable) {
+    window.addEventListener('load', function() {
+        if (typeof window.jQuery === 'undefined' || !window.jQuery.fn.dataTable) {
             return;
         }
 
-        $.extend(true, $.fn.dataTable.defaults, {
+        window.jQuery.extend(true, window.jQuery.fn.dataTable.defaults, {
             rowId: 'id',
             pageLength: 10,
             lengthMenu: [10, 25, 50, 100],
@@ -137,7 +137,7 @@
         });
 
         if (@json($ajax_same_page ?? false)) {
-            $.extend(true, $.fn.dataTable.defaults, {
+            window.jQuery.extend(true, window.jQuery.fn.dataTable.defaults, {
                 serverSide: true,
                 ajax: window.location.href,
             });
@@ -145,7 +145,7 @@
     });
 
     function DataTableDetectClick(event, url) {
-        if ($(event.target).closest('a, button').length) {
+        if (window.jQuery(event.target).closest('a, button').length) {
             return;
         }
 
@@ -177,13 +177,13 @@
 
     // Clickable row
     function DataTableClickableRow(row, data, url) {
-        $(row).css('cursor', 'pointer');
+        window.jQuery(row).css('cursor', 'pointer');
 
         var clickTimer;
         var isDragging = false;
         var isDoubleClick = false;
 
-        $(document).on('mousedown', function() {
+        window.jQuery(document).on('mousedown', function() {
             isDragging = false;
         }).on('mousemove', function() {
             isDragging = true;
@@ -191,12 +191,12 @@
             isDragging = false;
         });
 
-        $(row).on('dblclick', function(event) {
+        window.jQuery(row).on('dblclick', function(event) {
             isDoubleClick = true;
             clearTimeout(clickTimer);
         });
 
-        $(row).on('mousedown', function(event) {
+        window.jQuery(row).on('mousedown', function(event) {
             clickTimer = setTimeout(function() {
                 if (!isDragging || isDoubleClick) {
                     DataTableDetectClick(event, url);
@@ -206,9 +206,9 @@
     }
 
     // Apply clickable row to all rows with data-href
-    $(function() {
-        $('tr[data-href]').each(function() {
-            var url = $(this).attr('data-href');
+    window.addEventListener('load', function() {
+        window.jQuery('tr[data-href]').each(function() {
+            var url = window.jQuery(this).attr('data-href');
             DataTableClickableRow(this, null, url);
         });
     });

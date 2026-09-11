@@ -45,6 +45,7 @@
                 @include('layouts.inc.navbar')
             </div>
 
+            @include('layouts.inc.alert')
             @yield('content')
         </div>
     @endauth

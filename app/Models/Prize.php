@@ -15,9 +15,11 @@ class Prize extends Model
         'raffle_period_id',
         'name',
         'description',
-        'quantity',
+        'nominal_per_poin',
         'sequence',
+        'quantity',
         'status',
+        'active_for_exchange',
     ];
 
     protected function casts(): array
@@ -25,6 +27,8 @@ class Prize extends Model
         return [
             'quantity' => 'integer',
             'sequence' => 'integer',
+            'nominal_per_poin' => 'integer',
+            'active_for_exchange' => 'boolean',
         ];
     }
 
@@ -43,11 +47,26 @@ class Prize extends Model
         return $this->hasMany(Winner::class);
     }
 
-    /**
-     * Memeriksa apakah hadiah sudah digunakan dalam pengundian atau sudah memiliki pemenang.
-     */
+    public function pointRedemptions(): HasMany
+    {
+        return $this->hasMany(PointRedemption::class);
+    }
+
+    public function customerBalances(): HasMany
+    {
+        return $this->hasMany(CustomerPointBalance::class, 'prize_id');
+    }
+
     public function isUsedInDrawing(): bool
     {
         return $this->drawings()->exists() || $this->winners()->exists();
+    }
+
+    public function canBeExchanged(): bool
+    {
+        return $this->active_for_exchange
+            && $this->status === 'active'
+            && $this->nominal_per_poin !== null
+            && $this->nominal_per_poin > 0;
     }
 }

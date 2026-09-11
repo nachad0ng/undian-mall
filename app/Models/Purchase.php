@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +21,8 @@ class Purchase extends Model
         'receipt_number',
         'purchased_at',
         'amount',
-        'total_coupons',
+        'payment_type_id',
+        'exchange_status',
         'notes',
     ];
 
@@ -29,7 +31,6 @@ class Purchase extends Model
         return [
             'purchased_at' => 'datetime',
             'amount' => 'integer',
-            'total_coupons' => 'integer',
         ];
     }
 
@@ -53,8 +54,38 @@ class Purchase extends Model
         return $this->belongsTo(User::class, 'entered_by');
     }
 
+    public function paymentType(): BelongsTo
+    {
+        return $this->belongsTo(PaymentType::class, 'payment_type_id');
+    }
+
     public function coupons(): HasMany
     {
         return $this->hasMany(Coupon::class);
+    }
+
+    public function pointRedemption(): BelongsTo
+    {
+        return $this->belongsTo(PointRedemption::class);
+    }
+
+    public function isAlreadyRedeemed(): bool
+    {
+        return $this->exchange_status === 'sudah';
+    }
+
+    public function markAsRedeemed(): bool
+    {
+        return $this->update(['exchange_status' => 'sudah']);
+    }
+
+    public function scopeNotRedeemed($query)
+    {
+        return $query->where('exchange_status', 'belum');
+    }
+
+    public function scopeWithinExchangePeriod($query, CarbonInterface $start, CarbonInterface $end)
+    {
+        return $query->whereBetween('purchased_at', [$start, $end]);
     }
 }

@@ -43,7 +43,6 @@
                                 <tr>
                                     <th>Kode & Nama Periode</th>
                                     <th>Rentang Tanggal</th>
-                                    <th>Aturan Kupon</th>
                                     <th>Statistik</th>
                                     <th>Status</th>
                                     <th class="w-1 text-center">Aksi</th>
@@ -62,7 +61,7 @@
 @push('scripts')
     @include('layouts.plugins.datatables', ['ajax_same_page' => true])
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('load', function() {
             const $search = $('#filter-search');
             const $status = $('#filter-status');
             const csrfToken = $('meta[name="csrf-token"]').attr('content');
@@ -99,17 +98,10 @@
                     },
                     {
                         data: null,
-                        name: 'purchase_threshold',
-                        render: (data) => `<div class="small">Min. Belanja: <strong>Rp ${formatCurrency(data.purchase_threshold)}</strong></div>
-                            <div class="text-secondary small">Per Kupon: Rp ${formatCurrency(data.coupon_unit)}</div>`
-                    },
-                    {
-                        data: null,
                         name: 'prizes_count',
                         orderable: false,
                         render: (data) => `<span class="badge bg-blue-lt me-1">${data.prizes_count} Hadiah</span>
-                            <span class="badge bg-purple-lt me-1">${data.purchases_count} Struk</span>
-                            <span class="badge bg-green-lt">${data.coupons_count} Kupon</span>`
+                            <span class="badge bg-purple-lt me-1">${data.purchases_count} Struk</span>`
                     },
                     {
                         data: null,

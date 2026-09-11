@@ -18,6 +18,7 @@ class PrizeFactory extends Factory
             'name' => fake()->words(3, true),
             'description' => fake()->sentence(),
             'quantity' => 1,
+            'nominal_per_poin' => 100000,
             'sequence' => fake()->unique()->numberBetween(1, 9999),
             'status' => 'active',
         ];

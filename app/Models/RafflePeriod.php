@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,11 +19,11 @@ class RafflePeriod extends Model
         'description',
         'start_at',
         'end_at',
-        'purchase_threshold',
-        'coupon_unit',
-        'max_coupon_per_transaction',
+        'exchange_start_at',
+        'exchange_end_at',
         'status',
         'drawing_status',
+        'created_by',
     ];
 
     protected function casts(): array
@@ -29,9 +31,8 @@ class RafflePeriod extends Model
         return [
             'start_at' => 'datetime',
             'end_at' => 'datetime',
-            'purchase_threshold' => 'integer',
-            'coupon_unit' => 'integer',
-            'max_coupon_per_transaction' => 'integer',
+            'exchange_start_at' => 'datetime',
+            'exchange_end_at' => 'datetime',
         ];
     }
 
@@ -60,54 +61,52 @@ class RafflePeriod extends Model
         return $this->hasMany(Winner::class);
     }
 
-    public function hasCouponRule(): bool
+    public function pointRedemptions(): HasMany
     {
-        return (int) $this->purchase_threshold >= 1 && (int) $this->coupon_unit >= 1;
+        return $this->hasMany(PointRedemption::class);
+    }
+
+    public function bonusRules(): HasMany
+    {
+        return $this->hasMany(BonusPointRule::class);
     }
 
     public function canBeActivated(): bool
     {
         return $this->status !== 'closed'
-            && $this->drawing_status !== 'completed'
-            && $this->hasCouponRule();
+            && $this->drawing_status !== 'completed';
     }
 
-    /**
-     * Memeriksa apakah periode aktif dan tanggal transaksi berada dalam rentang periode.
-     */
     public function canAcceptTransactions($date = null): bool
     {
-        $checkDate = $date ? \Carbon\Carbon::parse($date) : now();
+        $checkDate = $date ? Carbon::parse($date) : now();
 
         return $this->status === 'active'
             && $this->drawing_status !== 'completed'
-            && $this->hasCouponRule()
             && $checkDate->between($this->start_at, $this->end_at);
     }
 
-    /**
-     * Memeriksa apakah pengundian pada periode ini telah selesai.
-     */
     public function isDrawingCompleted(): bool
     {
         return $this->drawing_status === 'completed';
     }
 
-    /**
-     * Menghitung kupon secara deterministik berdasarkan konfigurasi periode.
-     */
-    public function calculateCoupons(int $amount): int
+    public function exchangeOpenNow(): bool
     {
-        if ($amount < $this->purchase_threshold || $this->coupon_unit <= 0) {
-            return 0;
-        }
+        $now = now();
+        $start = $this->exchange_start_at ?? $this->end_at;
+        $end = $this->exchange_end_at ?? $this->end_at;
 
-        $coupons = intdiv($amount, $this->coupon_unit);
+        return $this->status === 'active'
+            && $this->drawing_status !== 'completed'
+            && $now->between($start, $end);
+    }
 
-        if ($this->max_coupon_per_transaction && $coupons > $this->max_coupon_per_transaction) {
-            return $this->max_coupon_per_transaction;
-        }
-
-        return $coupons;
+    public function getActivePrizesForExchange(): Collection
+    {
+        return $this->prizes()
+            ->where('active_for_exchange', true)
+            ->where('status', 'active')
+            ->get();
     }
 }

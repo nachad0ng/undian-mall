@@ -25,9 +25,6 @@ class UpdateRafflePeriodRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after_or_equal:start_at'],
-            'purchase_threshold' => ['required', 'integer', 'min:1'],
-            'coupon_unit' => ['required', 'integer', 'min:1'],
-            'max_coupon_per_transaction' => ['nullable', 'integer', 'min:1'],
             'status' => ['required', 'in:draft,active,inactive,closed'],
         ];
     }
@@ -52,8 +49,6 @@ class UpdateRafflePeriodRequest extends FormRequest
             'start_at.required' => 'Tanggal mulai periode wajib diisi.',
             'end_at.required' => 'Tanggal berakhir periode wajib diisi.',
             'end_at.after_or_equal' => 'Tanggal berakhir harus sama atau setelah tanggal mulai.',
-            'purchase_threshold.required' => 'Minimum belanja wajib diisi.',
-            'coupon_unit.required' => 'Kelipatan kupon wajib diisi.',
         ];
     }
 }

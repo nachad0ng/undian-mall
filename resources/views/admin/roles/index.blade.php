@@ -47,7 +47,7 @@
 @push('scripts')
     @include('layouts.plugins.datatables', ['ajax_same_page' => true])
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('load', function() {
             const table = $('#table').DataTable({
                 columns: [{
                         data: 'name',

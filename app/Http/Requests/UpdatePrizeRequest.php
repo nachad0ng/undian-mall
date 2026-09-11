@@ -19,6 +19,7 @@ class UpdatePrizeRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'quantity' => ['required', 'integer', 'min:1'],
+            'nominal_per_poin' => ['required', 'integer', 'min:1'],
             'sequence' => [
                 'required',
                 'integer',
@@ -62,6 +63,7 @@ class UpdatePrizeRequest extends FormRequest
             'raffle_period_id.exists' => 'Periode undian tidak valid.',
             'name.required' => 'Nama hadiah wajib diisi.',
             'quantity.required' => 'Jumlah hadiah wajib diisi.',
+            'nominal_per_poin.required' => 'Nominal per poin wajib diisi.',
             'sequence.required' => 'Urutan hadiah wajib diisi.',
             'sequence.unique' => 'Urutan hadiah pada periode ini sudah digunakan.',
         ];

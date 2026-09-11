@@ -47,18 +47,4 @@ class RafflePeriodRuleTest extends TestCase
         $this->assertTrue($period->canAcceptTransactions());
         $period->forceDelete();
     }
-
-    public function test_coupon_calculation_uses_period_rules(): void
-    {
-        $period = RafflePeriod::factory()->create([
-            'purchase_threshold' => 100000,
-            'coupon_unit' => 100000,
-            'max_coupon_per_transaction' => 3,
-        ]);
-
-        $this->assertSame(0, $period->calculateCoupons(50000));
-        $this->assertSame(2, $period->calculateCoupons(250000));
-        $this->assertSame(3, $period->calculateCoupons(900000));
-        $period->forceDelete();
-    }
 }

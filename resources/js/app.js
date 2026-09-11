@@ -1,16 +1,17 @@
 import $ from 'jquery';
 import * as bootstrap from 'bootstrap';
-import 'select2';
 import Swal from 'sweetalert2';
 import 'datatables.net-bs5';
 
 window.$ = $;
 window.jQuery = $;
+globalThis.$ = $;
+globalThis.jQuery = $;
 window.bootstrap = bootstrap;
 window.Swal = Swal;
 
 // Global JavaScript functions
-document.addEventListener('DOMContentLoaded', function () {
+function initializePlugins() {
     // Initialize tooltips and popovers
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -50,6 +51,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             },
         });
+    }
+}
+
+import('select2').then(() => {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePlugins, { once: true });
+    } else {
+        initializePlugins();
     }
 });
 

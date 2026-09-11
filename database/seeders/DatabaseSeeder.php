@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             'manage-customers',
             'manage-periods',
             'manage-prizes',
+            'manage-payment-types',
             'manage-coupons',
             'manage-transactions',
             'manage-draws',
@@ -47,11 +48,11 @@ class DatabaseSeeder extends Seeder
         // Assign permissions to Manager
         $managerRole->syncPermissions([
             'view-dashboard',
-            'manage-users',
             'manage-tenants',
             'manage-customers',
             'manage-periods',
             'manage-prizes',
+            'manage-payment-types',
             'manage-coupons',
             'manage-transactions',
             'manage-draws',
@@ -118,5 +119,7 @@ class DatabaseSeeder extends Seeder
         $auditorUser->assignRole($auditorRole);
 
         $this->call(TenantSeeder::class);
+        $this->call(MasterDataSeeder::class);
+        $this->call(CustomerSeeder::class);
     }
 }

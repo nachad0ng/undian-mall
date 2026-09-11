@@ -57,7 +57,7 @@
 @push('scripts')
     @include('layouts.plugins.datatables', ['ajax_same_page' => true])
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('load', function() {
             const $search = $('#filter-search');
             const $status = $('#filter-status');
             const csrfToken = $('meta[name="csrf-token"]').attr('content');

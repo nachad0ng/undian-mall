@@ -25,7 +25,8 @@
 
 <div class="mb-3">
     <label class="form-label required">Nama Hadiah</label>
-    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $prize?->name) }}" required>
+    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+        value="{{ old('name', $prize?->name) }}" required>
     @error('name')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
@@ -39,10 +40,23 @@
     @enderror
 </div>
 
+<div class="mb-3">
+    <label class="form-label required">Nominal Per Poin (Rp)</label>
+    <input type="number" name="nominal_per_poin" min="1"
+        class="form-control @error('nominal_per_poin') is-invalid @enderror"
+        value="{{ old('nominal_per_poin', $prize?->nominal_per_poin) }}" required>
+    <small class="form-hint">Nilai belanja yang menghasilkan 1 poin untuk hadiah ini.</small>
+    @error('nominal_per_poin')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
 <div class="row">
     <div class="col-md-6 mb-3">
         <label class="form-label required">Jumlah</label>
-        <input type="number" name="quantity" min="1" class="form-control @error('quantity') is-invalid @enderror" value="{{ old('quantity', $prize?->quantity ?? 1) }}" required>
+        <input type="number" name="quantity" min="1"
+            class="form-control @error('quantity') is-invalid @enderror"
+            value="{{ old('quantity', $prize?->quantity ?? 1) }}" required>
         @error('quantity')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
@@ -53,7 +67,9 @@
             <input type="hidden" name="sequence" value="{{ $prize->sequence }}">
             <input type="number" class="form-control" value="{{ $prize->sequence }}" disabled>
         @else
-            <input type="number" name="sequence" min="1" class="form-control @error('sequence') is-invalid @enderror" value="{{ old('sequence', $prize?->sequence ?? 1) }}" required>
+            <input type="number" name="sequence" min="1"
+                class="form-control @error('sequence') is-invalid @enderror"
+                value="{{ old('sequence', $prize?->sequence ?? 1) }}" required>
         @endif
         @error('sequence')
             <div class="invalid-feedback d-block">{{ $message }}</div>

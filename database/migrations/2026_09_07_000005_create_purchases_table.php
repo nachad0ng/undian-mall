@@ -20,8 +20,11 @@ return new class extends Migration
             $table->string('receipt_number', 100);
             $table->dateTime('purchased_at')->comment('Tanggal & jam transaksi sesuai struk');
             $table->unsignedBigInteger('amount')->comment('Nominal belanja dalam Rupiah');
-            $table->unsignedInteger('total_coupons')->default(0)->comment('Jumlah kupon yang dihasilkan');
             $table->text('notes')->nullable();
+            $table->unsignedBigInteger('payment_type_id')->nullable()
+                ->comment('Metode pembayaran yang digunakan dalam transaksi ini');
+            $table->string('exchange_status', 20)->default('belum')
+                ->comment('belum / sudah — apakah struk ini sudah ditukar poinnya');
             $table->softDeletes();
             $table->timestamps();
 
@@ -29,6 +32,7 @@ return new class extends Migration
             $table->unique(['raffle_period_id', 'tenant_id', 'receipt_number'], 'purchases_period_tenant_receipt_unique');
             $table->index(['customer_id', 'raffle_period_id']);
             $table->index(['tenant_id', 'purchased_at']);
+            $table->index(['exchange_status', 'payment_type_id']);
         });
     }
 

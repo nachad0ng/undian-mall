@@ -10,6 +10,7 @@ use Tests\TestCase;
 class RafflePeriodManagementTest extends TestCase
 {
     protected User $adminUser;
+
     protected User $csUser;
 
     protected function setUp(): void
@@ -45,7 +46,7 @@ class RafflePeriodManagementTest extends TestCase
             ->assertViewIs('admin.raffle-periods.create');
     }
 
-    public function test_store_period_requires_validation_and_coupon_rule(): void
+    public function test_store_period_requires_basic_validation(): void
     {
         $this->actingAs($this->adminUser)
             ->from(route('admin.raffle-periods.create'))
@@ -54,12 +55,10 @@ class RafflePeriodManagementTest extends TestCase
                 'name' => '',
                 'start_at' => now()->addDay()->toDateTimeString(),
                 'end_at' => now()->toDateTimeString(),
-                'purchase_threshold' => 0,
-                'coupon_unit' => 0,
                 'status' => 'active',
             ])
             ->assertRedirect(route('admin.raffle-periods.create'))
-            ->assertSessionHasErrors(['code', 'name', 'end_at', 'purchase_threshold', 'coupon_unit']);
+            ->assertSessionHasErrors(['code', 'name', 'end_at']);
     }
 
     public function test_super_admin_can_create_show_and_update_period(): void
@@ -70,9 +69,6 @@ class RafflePeriodManagementTest extends TestCase
             'description' => 'Tes CRUD periode',
             'start_at' => now()->subDay()->format('Y-m-d H:i:s'),
             'end_at' => now()->addDays(7)->format('Y-m-d H:i:s'),
-            'purchase_threshold' => 150000,
-            'coupon_unit' => 100000,
-            'max_coupon_per_transaction' => 5,
             'status' => 'draft',
         ];
 
@@ -103,7 +99,7 @@ class RafflePeriodManagementTest extends TestCase
 
     public function test_toggle_status_follows_active_inactive_and_closed_rules(): void
     {
-        $draft = RafflePeriod::factory()->withoutCouponRule()->create();
+        $draft = RafflePeriod::factory()->create();
         $this->actingAs($this->adminUser)
             ->post(route('admin.raffle-periods.toggle-status', $draft))
             ->assertRedirect()
