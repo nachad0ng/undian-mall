@@ -8,7 +8,7 @@
         <h1 class="navbar-brand navbar-brand-autodark pe-0 pe-md-3">
             <a href="{{ route('dashboard') }}">
                 <i class="bi bi-gift-fill" style="font-size: 1.5rem; color: #0066cc;"></i>
-                <span class="d-none d-md-inline">Mall Lucky Draw</span>
+                <span class="d-none d-md-inline">{{ config('app.name') }}</span>
             </a>
         </h1>
         <div class="navbar-nav flex-row order-md-last">
@@ -94,7 +94,7 @@
                             <a class="nav-link dropdown-toggle" href="#navbar-master" data-bs-toggle="dropdown"
                                 data-bs-auto-close="outside" role="button" aria-expanded="false">
                                 <span class="nav-link-icon">
-                                    <i class="bi bi-collection"></i>
+                                    <i class="bi bi-tags"></i>
                                 </span>
                                 <span class="nav-link-title">Master Data</span>
                             </a>
@@ -155,6 +155,14 @@
                                     Tukar Struk & Riwayat
                                 </a>
                             </div>
+                        </li>
+                    @endif
+                    @if (auth()->user()->hasPermissionTo('view-audit-logs'))
+                        <li class="nav-item {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('admin.audit-logs.index') }}">
+                                <span class="nav-link-icon"><i class="bi bi-clock-history"></i></span>
+                                <span class="nav-link-title">Audit Log</span>
+                            </a>
                         </li>
                     @endif
                     {{-- Admin: Users, Roles, Permissions --}}

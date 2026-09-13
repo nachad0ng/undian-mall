@@ -29,8 +29,18 @@
                                 <div class="datagrid-content">{{ $redemption->prize->name }}</div>
                             </div>
                             <div class="datagrid-item">
+                                <div class="datagrid-title">Tipe Pembayaran</div>
+                                <div class="datagrid-content">
+                                    {{ $pointDetails['payment_type_name'] ?? '-' }}
+                                    @if ($pointDetails['payment_type_code'])
+                                        <span class="text-secondary">({{ $pointDetails['payment_type_code'] }})</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
                                 <div class="datagrid-title">Nominal Struk</div>
-                                <div class="datagrid-content">Rp {{ number_format($redemption->nominal_struk, 0, ',', '.') }}</div>
+                                <div class="datagrid-content">Rp
+                                    {{ number_format($redemption->nominal_struk, 0, ',', '.') }}</div>
                             </div>
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Poin Didapat</div>
@@ -47,14 +57,14 @@
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Status</div>
                                 <div class="datagrid-content">
-                                    @if($redemption->status === 'success')
+                                    @if ($redemption->status === 'success')
                                         <span class="badge bg-success-lt">Sukses</span>
                                     @else
                                         <span class="badge bg-danger-lt">{{ ucfirst($redemption->status) }}</span>
                                     @endif
                                 </div>
                             </div>
-                            @if($redemption->notes)
+                            @if ($redemption->notes)
                                 <div class="datagrid-item">
                                     <div class="datagrid-title">Catatan</div>
                                     <div class="datagrid-content">{{ $redemption->notes }}</div>
@@ -79,15 +89,20 @@
                             <tbody>
                                 <tr>
                                     <td>Nominal Per Poin</td>
-                                    <td>Rp {{ number_format($redemption->nominal_struk, 0, ',', '.') }} / poin (rule hadiah)</td>
+                                    <td>Rp {{ number_format($pointDetails['nominal_per_poin'], 0, ',', '.') }} / poin</td>
                                 </tr>
                                 <tr>
-                                    <td>Poin Dari Nominal</td>
-                                    <td>{{ floor($redemption->nominal_struk / $redemption->total_poin_didapat > 0 ? $redemption->nominal_struk / $redemption->total_poin_didapat : 0) }} (estimasi)</td>
+                                    <td>Poin Dari Nominal Struk</td>
+                                    <td>{{ $pointDetails['poin_dari_nominal'] }} poin</td>
                                 </tr>
                                 <tr>
-                                    <td>Bonus Pembayaran</td>
-                                    <td>-</td>
+                                    <td>Bonus Dari Tipe Pembayaran</td>
+                                    <td>{{ $pointDetails['poin_bonus_pembayaran'] }} poin</td>
+                                </tr>
+                                <tr>
+                                    <td>Rule Bonus</td>
+                                    <td>{{ $pointDetails['bonus_rule_id'] ? '#' . $pointDetails['bonus_rule_id'] : '-' }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><strong>Total Poin</strong></td>

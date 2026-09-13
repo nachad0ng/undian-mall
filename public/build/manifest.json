@@ -1,12 +1,4 @@
 {
-  "_select2-DV69t73o.js": {
-    "file": "assets/select2-DV69t73o.js",
-    "name": "select2",
-    "isDynamicEntry": true,
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
   "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff": {
     "file": "assets/bootstrap-icons-BeopsB42.woff",
     "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff"
@@ -16,17 +8,14 @@
     "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-aFQh8LYC.css",
+    "file": "assets/app-olQC_2BK.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-ADSRpytE.js",
+    "file": "assets/app-DHuqubjv.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true,
-    "dynamicImports": [
-      "_select2-DV69t73o.js"
-    ]
+    "isEntry": true
   }
 }

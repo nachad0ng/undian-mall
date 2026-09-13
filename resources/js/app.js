@@ -2,6 +2,11 @@ import $ from 'jquery';
 import * as bootstrap from 'bootstrap';
 import Swal from 'sweetalert2';
 import 'datatables.net-bs5';
+import select2 from 'select2';
+import IMask from 'imask';
+
+
+select2(window, $);
 
 window.$ = $;
 window.jQuery = $;
@@ -9,6 +14,7 @@ globalThis.$ = $;
 globalThis.jQuery = $;
 window.bootstrap = bootstrap;
 window.Swal = Swal;
+window.IMask = IMask;
 
 // Global JavaScript functions
 function initializePlugins() {
@@ -24,10 +30,7 @@ function initializePlugins() {
     });
 
     if ($.fn.select2) {
-        $('.select2').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-        });
+        $.fn.select2.defaults.set('theme', 'bootstrap-5');
     }
 
     if ($.fn.dataTable) {
@@ -54,13 +57,11 @@ function initializePlugins() {
     }
 }
 
-import('select2').then(() => {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializePlugins, { once: true });
-    } else {
-        initializePlugins();
-    }
-});
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializePlugins, { once: true });
+} else {
+    initializePlugins();
+}
 
 // Utility function for SweetAlert2 confirmation
 window.confirmDelete = function (event) {

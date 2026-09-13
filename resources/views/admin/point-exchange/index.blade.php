@@ -22,19 +22,22 @@
                                 <select id="period_id" class="form-select" required>
                                     <option value="">Pilih periode</option>
                                     @foreach ($periods as $period)
-                                        <option value="{{ $period->id }}">{{ $period->name }}</option>
+                                        <option value="{{ $period->id }}" @selected($activePeriod?->id === $period->id)>{{ $period->name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label" for="customer_id">Customer</label>
-                                <select id="customer_id" class="form-select" required>
-                                    <option value="">Pilih customer</option>
-                                    @foreach ($customers as $customer)
-                                        <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->phone }})
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group ">
+                                    <select id="customer_id" class="form-select" required>
+                                        <option value="">Pilih customer</option>
+                                    </select>
+                                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                                        data-bs-target="#quick-customer-modal" title="Tambah customer">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label required" for="receipt_number">Nomor struk</label>
@@ -58,8 +61,8 @@
                                 <label class="form-label required" for="amount">Nominal struk</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Rp</span>
-                                    <input id="amount" class="form-control" type="number" min="1" required
-                                        placeholder="0">
+                                    <input id="amount" class="form-control" type="text" inputmode="decimal" required
+                                        placeholder="0.00" autocomplete="off">
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -114,10 +117,50 @@
                         </table>
                     </div>
                 </div>
+
+                <div class="modal fade" id="quick-customer-modal" tabindex="-1" aria-labelledby="quick-customer-title"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form id="quick-customer-form">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="quick-customer-title">Tambah customer</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Tutup"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="customer-alert" class="alert alert-danger d-none"></div>
+                                    <div class="mb-3">
+                                        <label class="form-label required" for="quick-customer-name">Nama</label>
+                                        <input id="quick-customer-name" name="name" class="form-control" required
+                                            maxlength="255" autocomplete="name">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label required" for="quick-customer-phone">Nomor
+                                            telepon</label>
+                                        <input id="quick-customer-phone" name="phone" class="form-control" required
+                                            maxlength="50" inputmode="tel" autocomplete="tel">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label required">Nomor Identitas</label>
+                                        <input type="text" name="identity_number" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-link" data-bs-dismiss="modal">Batal</button>
+                                    <button id="save-quick-customer" type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-lg me-1"></i>Simpan dan pilih
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 @endsection
+
 @push('scripts')
     @include('layouts.plugins.datatables', ['ajax_same_page' => true])
     <script>
@@ -129,6 +172,41 @@
             const submitButton = $('#submit-redemption');
             const preview = $('#points-preview');
             let prizes = [];
+            const amountMask = IMask(document.getElementById('amount'), {
+                mask: Number,
+                thousandsSeparator: ',',
+                radix: '.',
+                mapToRadix: ['.'],
+                scale: 2,
+                padFractionalZeros: true,
+                normalizeZeros: true,
+                min: 0,
+            });
+
+            customerSelect.select2({
+                allowClear: true,
+                placeholder: 'Cari nama atau nomor telepon...',
+                minimumInputLength: 1,
+                ajax: {
+                    url: @json(route('admin.customers.search')),
+                    dataType: 'json',
+                    delay: 250,
+                    data: (params) => ({
+                        q: params.term
+                    }),
+                    processResults: (response) => ({
+                        results: response.results
+                    }),
+                },
+            });
+
+            function amountValue() {
+                const value = Number(amountMask.unmaskedValue);
+                return Number.isFinite(value) ? value : 0;
+            }
+
+            amountMask.on('accept', updatePreview);
+
 
             function showAlert(message, type = 'danger') {
                 $('#redemption-alert').removeClass('d-none alert-danger alert-success').addClass(`alert-${type}`)
@@ -137,7 +215,7 @@
 
             function updatePreview() {
                 const prize = prizes.find((item) => String(item.id) === prizeSelect.val());
-                const amount = Number($('#amount').val());
+                const amount = amountValue();
                 if (!amount || !prize) {
                     preview.text('Pilih struk dan hadiah');
                     submitButton.prop('disabled', true);
@@ -165,7 +243,49 @@
             periodSelect.on('change', function() {
                 loadPrizes();
             });
-            $('#amount').add(prizeSelect).on('input change', updatePreview);
+            $('#amount').on('input', function() {
+                updatePreview();
+            });
+            $('#amount').on('blur', function() {
+                this.value = formatAmount(this.value);
+                updatePreview();
+            });
+            prizeSelect.on('change', updatePreview);
+            $('#quick-customer-modal').on('shown.bs.modal', () => $('#quick-customer-name').trigger('focus'));
+            $('#quick-customer-form').on('submit', function(event) {
+                event.preventDefault();
+                const saveButton = $('#save-quick-customer').prop('disabled', true);
+                $('#customer-alert').addClass('d-none');
+                $.ajax({
+                    url: @json(route('admin.customers.quick-store')),
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        Accept: 'application/json'
+                    },
+                    data: $(this).serialize(),
+                }).done(function(response) {
+                    const option = new Option(response.customer.text, response.customer.id, true,
+                        true);
+
+                    customerSelect.append(option).trigger('change');
+
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById(
+                        'quick-customer-modal')).hide();
+                    $('#quick-customer-form')[0].reset();
+                }).fail(function(xhr) {
+                    const errors = xhr.responseJSON?.errors || {};
+                    const message = Object.values(errors).flat()[0] || xhr.responseJSON?.message ||
+                        'Customer gagal ditambahkan.';
+                    $('#customer-alert').removeClass('d-none').text(message);
+                }).always(function() {
+                    saveButton.prop('disabled', false);
+                });
+            });
+
+            $('#purchased_at').val(new Date().toISOString().slice(0, 16));
+            loadPrizes();
+
             $('#redemption-form').on('submit', function(event) {
                 event.preventDefault();
                 submitButton.prop('disabled', true);
@@ -181,7 +301,7 @@
                         receipt_number: $('#receipt_number').val(),
                         tenant_id: $('#tenant_id').val(),
                         purchased_at: $('#purchased_at').val(),
-                        amount: $('#amount').val(),
+                        amount: Math.round(amountValue()),
                         payment_type_id: $('#payment_type_id').val(),
                         prize_id: prizeSelect.val(),
                         notes: $('#notes').val()
@@ -189,6 +309,11 @@
                 }).done(function(response) {
                     showAlert(response.message, 'success');
                     $('#redemption-form')[0].reset();
+                    periodSelect.val(@json($activePeriod?->id));
+                    customerSelect.val(null).trigger('change');
+                    $('#purchased_at').val(new Date().toISOString().slice(0, 16));
+                    loadPrizes();
+                    $('#amount').val('');
                     prizeSelect.prop('disabled', true).html(
                         '<option value="">Pilih periode terlebih dahulu</option>');
                     preview.text('Pilih struk dan hadiah');

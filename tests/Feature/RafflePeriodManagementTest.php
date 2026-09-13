@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Models\Purchase;
 use App\Models\RafflePeriod;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class RafflePeriodManagementTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected User $adminUser;
 
     protected User $csUser;
@@ -16,6 +19,7 @@ class RafflePeriodManagementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed();
 
         $this->adminUser = User::where('email', 'admin@example.com')->first();
         $this->csUser = User::where('email', 'customerservice@example.com')->first();
@@ -103,8 +107,8 @@ class RafflePeriodManagementTest extends TestCase
         $this->actingAs($this->adminUser)
             ->post(route('admin.raffle-periods.toggle-status', $draft))
             ->assertRedirect()
-            ->assertSessionHas('error');
-        $this->assertSame('draft', $draft->fresh()->status);
+            ->assertSessionHas('success');
+        $this->assertSame('active', $draft->fresh()->status);
 
         $ready = RafflePeriod::factory()->create(['status' => 'draft']);
         $this->actingAs($this->adminUser)

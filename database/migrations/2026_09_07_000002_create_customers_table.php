@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name', 255);
             $table->string('phone', 50)->index();
-            $table->string('identity_number', 50)->nullable()->index()->comment('Nomor KTP/SIM/Paspor');
+            $table->string('identity_number', 50)->index()->unique()
+                ->comment('Nomor KTP/SIM/Paspor');
             $table->string('email', 255)->nullable();
             $table->text('address')->nullable();
             $table->softDeletes();

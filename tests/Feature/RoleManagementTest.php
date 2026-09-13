@@ -3,18 +3,23 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RoleManagementTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected $adminUser;
+
     protected $managerUser;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed();
 
         $this->adminUser = User::where('email', 'admin@example.com')->first();
         $this->managerUser = User::where('email', 'manager@example.com')->first();
@@ -66,7 +71,7 @@ class RoleManagementTest extends TestCase
     {
         $role = Role::create(['name' => 'Temp Role To Delete', 'guard_name' => 'web']);
         $response = $this->actingAs($this->managerUser)->delete(route('admin.roles.destroy', $role));
-        
+
         $this->assertDatabaseHas('roles', ['name' => 'Temp Role To Delete']);
         $role->delete();
 
@@ -98,8 +103,8 @@ class RoleManagementTest extends TestCase
                         'edit_url',
                         'delete_url',
                     ],
-                ]
-            ]
+                ],
+            ],
         ]);
     }
 

@@ -80,7 +80,7 @@ class PointCalculationService
 
     /**
      * Validasi apakah struk boleh ditukar.
-     * Cek: status_tukar, rentang tanggal belanja, rentang tanggal tukar.
+     * Cek: exchange_status, rentang tanggal belanja, rentang tanggal tukar.
      */
     public function validatePurchaseForRedemption(
         Purchase $purchase,

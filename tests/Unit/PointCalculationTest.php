@@ -17,6 +17,8 @@ class PointCalculationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seed = false;
+
     private PointCalculationService $service;
 
     protected function setUp(): void
@@ -48,7 +50,7 @@ class PointCalculationTest extends TestCase
         $purchase = Purchase::factory()->create([
             'raffle_period_id' => $period->id,
             'customer_id' => Customer::factory()->create()->id,
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(2),
             'amount' => 5_500_000, // 5 poin + sisa 500.000 (hangus)
         ]);
@@ -85,7 +87,7 @@ class PointCalculationTest extends TestCase
         $purchase = Purchase::factory()->create([
             'raffle_period_id' => $period->id,
             'customer_id' => Customer::factory()->create()->id,
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(2),
             'amount' => 1_000_000,
         ]);
@@ -100,7 +102,7 @@ class PointCalculationTest extends TestCase
         $purchase2 = Purchase::factory()->create([
             'raffle_period_id' => $period->id,
             'customer_id' => Customer::factory()->create()->id,
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(1),
             'amount' => 1_100_000,
         ]);
@@ -136,7 +138,7 @@ class PointCalculationTest extends TestCase
             'raffle_period_id' => $period->id,
             'customer_id' => $customer->id,
             'payment_type_id' => null, // tanpa tipe pembayaran
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(2),
             'amount' => 2_750_000,
         ]);
@@ -184,7 +186,7 @@ class PointCalculationTest extends TestCase
             'raffle_period_id' => $period->id,
             'customer_id' => $customer->id,
             'payment_type_id' => $paymentType->id,
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(2),
             'amount' => 3_500_000,
         ]);
@@ -231,7 +233,7 @@ class PointCalculationTest extends TestCase
             'raffle_period_id' => $period->id,
             'customer_id' => $customer->id,
             'payment_type_id' => $paymentType->id, // TUNAI, tidak ada bonus
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(2),
             'amount' => 1_000_000,
         ]);
@@ -276,7 +278,7 @@ class PointCalculationTest extends TestCase
             'raffle_period_id' => $period->id,
             'customer_id' => $customer->id,
             'payment_type_id' => $paymentType->id,
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(1),
             'amount' => 1_200_000,
         ]);
@@ -314,7 +316,7 @@ class PointCalculationTest extends TestCase
         $purchase = Purchase::factory()->create([
             'raffle_period_id' => $period->id,
             'customer_id' => $customer->id,
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(1),
             'amount' => 1,
         ]);
@@ -349,7 +351,7 @@ class PointCalculationTest extends TestCase
         $purchase = Purchase::factory()->create([
             'raffle_period_id' => $period->id,
             'customer_id' => $customer->id,
-            'status_tukar' => 'belum',
+            'exchange_status' => 'belum',
             'purchased_at' => Carbon::now()->subHours(1),
             'amount' => 999_999,
         ]);
@@ -384,7 +386,7 @@ class PointCalculationTest extends TestCase
         $purchase = Purchase::factory()->create([
             'raffle_period_id' => $period->id,
             'customer_id' => $customer->id,
-            'status_tukar' => 'sudah', // sudah ditukar
+            'exchange_status' => 'sudah', // sudah ditukar
             'purchased_at' => Carbon::now()->subHours(2),
             'amount' => 1_000_000,
         ]);

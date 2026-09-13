@@ -21,6 +21,7 @@ class PrizeFactory extends Factory
             'nominal_per_poin' => 100000,
             'sequence' => fake()->unique()->numberBetween(1, 9999),
             'status' => 'active',
+            'active_for_exchange' => true,
         ];
     }
 }

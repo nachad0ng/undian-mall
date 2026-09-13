@@ -3,6 +3,7 @@
 @import 'select2/dist/css/select2.min.css';
 @import 'sweetalert2/dist/sweetalert2.min.css';
 @import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+@import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 
 :root {
     --bs-primary: #0066cc;
@@ -148,6 +149,19 @@ body {
     border-radius: 10px;
     border: none;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.select2-container {
+    max-width: 100%;
+}
+
+.select2-container--bootstrap-5
+.select2-selection--multiple
+.select2-selection__rendered
+.select2-selection__choice
+.select2-selection__choice__remove {
+    width: 1rem;
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23d63939'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") 50%/.75rem auto no-repeat;
 }
 
 /* Responsive adjustments */

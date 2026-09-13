@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
+use App\Models\BonusPointRule;
 use App\Models\Customer;
 use App\Models\CustomerPointBalance;
 use App\Models\PointRedemption;
@@ -48,6 +50,10 @@ class PointRedemptionService
 
             // Hitung poin
             $calc = $this->calculator->calculatePointsForPurchase($purchase, $prize, $period);
+            $purchase->loadMissing('paymentType');
+            $bonusRule = $purchase->payment_type_id
+                ? BonusPointRule::findActiveForPeriodAndPaymentType($period->id, $purchase->payment_type_id)
+                : null;
 
             // Simpan transaksi penukaran
             $redemption = PointRedemption::create([
@@ -58,6 +64,12 @@ class PointRedemptionService
                 'cs_id' => $csId,
                 'redeemed_at' => now(),
                 'nominal_struk' => $purchase->amount,
+                'nominal_per_poin_snapshot' => $calc['nominal_per_poin'],
+                'poin_dari_nominal' => $calc['points_from_amount'],
+                'poin_bonus_pembayaran' => $calc['bonus_points'],
+                'bonus_rule_id_snapshot' => $bonusRule?->id,
+                'payment_type_code_snapshot' => $purchase->paymentType?->code,
+                'payment_type_name_snapshot' => $purchase->paymentType?->name,
                 'total_poin_didapat' => $calc['total_points'],
                 'status' => 'success',
                 'notes' => $notes,
@@ -73,6 +85,20 @@ class PointRedemptionService
                 $prize->id
             );
             $balance->addPoints($calc['total_points']);
+
+            AuditLog::create([
+                'user_id' => $csId,
+                'action' => 'point_redemption.created',
+                'auditable_type' => PointRedemption::class,
+                'auditable_id' => $redemption->id,
+                'metadata' => [
+                    'customer_id' => $customer->id,
+                    'purchase_id' => $purchase->id,
+                    'prize_id' => $prize->id,
+                    'total_points' => $calc['total_points'],
+                    'calculation' => $calc,
+                ],
+            ]);
 
             return $redemption;
         });
@@ -124,6 +150,6 @@ class PointRedemptionService
     public function isPurchaseAlreadyRedeemed(Purchase $purchase): bool
     {
         return PointRedemption::where('purchase_id', $purchase->id)->exists()
-            || $purchase->status_tukar === 'sudah';
+            || $purchase->isAlreadyRedeemed();
     }
 }

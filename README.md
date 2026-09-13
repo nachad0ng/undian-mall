@@ -1,6 +1,6 @@
 # Mall Lucky Draw Management System
 
-Aplikasi sistem manajemen undian berhadiah untuk mall dengan fitur multi-tenant, kurasi kupon otomatis, mesin pengundian terintegrasi, dan **sistem penukaran poin berbasis per-hadiah** (bukan per-event).
+Aplikasi sistem manajemen undian berhadiah untuk mall dengan fitur multi-tenant, mesin pengundian terintegrasi, dan **sistem penukaran poin berbasis per-hadiah** (bukan per-event).
 
 ## Status Proyek
 
@@ -10,15 +10,13 @@ Aplikasi sistem manajemen undian berhadiah untuk mall dengan fitur multi-tenant,
 | STEP 2 | ✅ Selesai | Role & Permission Management — Admin Panel CRUD roles/permissions |
 | STEP 3 | ✅ Selesai | User Management — CRUD user + assign role |
 | STEP 4 | ✅ Selesai | Tenant Management — CRUD tenant + toggle status |
-| STEP 5 | ✅ Selesai | Coupon Rule — per-event threshold & unit (legacy, diganti oleh sistem poin) |
 | STEP 6 | ✅ Selesai | Customer Management |
 | STEP 7 | ✅ Selesai | Lucky Draw Period — CRUD periode + status |
 | STEP 8 | ✅ Selesai | Master Prize — CRUD hadiah (prize) |
-| STEP 9 | 🔄 Refactor | **Point Exchange / Receipt Exchange** — sistem poin per-hadiah (dikirim) |
-| STEP 10 | ⏳ Belum | Coupon Generation (di masa depan bisa disesuaikan) |
-| STEP 11–16 | ⏳ Belum | Approval workflow, draw engine, winner mgmt, reporting, audit, final optimization |
-
-> **Catatan:** STEP 5 (Coupon Rule) sekarang **sudah usang** karena digantikan oleh sistem poin per-hadiah. Kupon masih ada di database untuk kompatibilitas, tapi alur utama sekarang adalah poin → undian hadiah.
+| STEP 9 | ✅ Selesai | **Point Exchange / Receipt Exchange** — sistem poin per-hadiah |
+| STEP 10 | ✅ Selesai | Point Drawing — pengundian berbobot poin dan pencatatan pemenang |
+| STEP 11 | ✅ Selesai | Audit Log — pencatatan redemption dan drawing |
+| STEP 12–14 | ✅ Selesai | Reporting, audit viewer, publikasi pemenang, dan hardening operasional |
 
 ## Teknologi
 
@@ -48,7 +46,7 @@ Alur transaksi:
 3. Customer **memilih** mau ikut undian hadiah yang mana.
 4. Sistem hitung poin berdasarkan **rule milik hadiah yang dipilih** (bukan rule umum event).
 5. Poin tersimpan **terpisah per hadiah** (poin Mobil ≠ poin Motor, walau dari struk nominal sama).
-6. Struk **dikunci** setelah pertama kali dipakai (status_tukar = 'sudah').
+6. Struk **dikunci** setelah pertama kali dipakai (exchange_status = 'sudah').
 
 #### Formula Perhitungan Poin
 
@@ -78,8 +76,8 @@ total_poin_struk = FLOOR(total_belanja / nominal_per_poin) + bonus_poin
 
 ### C. Validasi Penting
 
-1. **1 struk = 1 hadiah** — begitu struk digunakan untuk satu hadiah, struk terkunci dan tidak bisa dipakai lagi (status_tukar = 'sudah').
-2. **Struk yang sudah dipakai tidak boleh dipakai ulang** — dicegah oleh status_tukar dan unique constraint di `point_redemptions.purchase_id`.
+1. **1 struk = 1 hadiah** — begitu struk digunakan untuk satu hadiah, struk terkunci dan tidak bisa dipakai lagi (exchange_status = 'sudah').
+2. **Struk yang sudah dipakai tidak boleh dipakai ulang** — dicegah oleh exchange_status dan unique constraint di `point_redemptions.purchase_id`.
 3. **Tanggal belanja struk** harus masuk rentang `start_at`–`end_at` periode.
 4. **Tanggal tukar** harus masuk rentang `exchange_start_at`–`exchange_end_at` (saat ini disamakan dengan periode belanja, tapi kolom terpisah tersedia).
 5. **Hadiah yang dipilih** harus `active_for_exchange = true` dan berada di periode yang sama dengan struk.
@@ -126,25 +124,17 @@ Bonus poin diberikan jika struk menggunakan tipe pembayaran yang memiliki rule b
 
 ### 3. Transaksi & Poin
 
-- **Purchase (Struk)** — merekam belanja: customer, tenant, receipt_number, nominal, payment_type_id, status_tukar.
+- **Purchase (Struk)** — merekam belanja: customer, tenant, receipt_number, nominal, payment_type_id, exchange_status.
 - **PointRedemption** — 1 baris = 1 struk ditukar untuk 1 hadiah. Kolom: customer_id, periode_id, hadiah_id, struk_id, cs_id, tanggal_tukar, nominal_struk, total_poin_didapat, status.
 - **CustomerPointBalance** — rekap per customer per periode per hadiah (total_poin).
 - **BonusPointRule** — bonus poin per tipe pembayaran per periode.
 
-### 4. Pengundian & Kupon (Legacy)
+### 4. Pengundian
 
-- **Coupon** — masih ada untuk kompatibilitas (STEP 5), tapi tidak digunakan untuk alur utama sekarang.
-- **Drawing & Winner** — mesin pengundian (belum diintegrasikan ke sistem poin).
+- **Drawing & Winner** — pengundian berbobot poin per hadiah dan pencatatan pemenang.
+- **AuditLog** — histori immutable untuk redemption dan drawing.
 
-## Alur Sebelum vs Sesudah Refaktor
-
-### Before (STEP 5 / Legacy)
-
-- 1 Periode memiliki rentang tanggal transaksi dan penukaran.
-- Semua struk di event itu menghasilkan kupon sama (seragam).
-- Tidak ada konsep per-hadiah.
-
-### After (Sistem Poin Per-Hadiah)
+## Alur Sistem Saat Ini
 
 - 1 Periode punya banyak hadiah.
 - Setiap hadiah punya `nominal_per_poin` sendiri.
@@ -152,6 +142,8 @@ Bonus poin diberikan jika struk menggunakan tipe pembayaran yang memiliki rule b
 - Poin tersimpan per hadiah.
 - Bonus poin dari tipe pembayaran.
 - 1 struk = 1 hadiah, struk dikunci setelah pakai.
+- Saldo poin menjadi pool pengundian per hadiah.
+- Setiap poin menjadi bobot peluang dan pemenang dicatat ke drawing.
 
 ## Database Schema (Ringkasan)
 
@@ -172,10 +164,13 @@ payment_types         — id, code, name, description, is_active, timestamps
 
 purchases             — id, raffle_period_id, customer_id, tenant_id, entered_by,
                          receipt_number, purchased_at, amount,
-                         payment_type_id, status_tukar, notes, timestamps
+                         payment_type_id, exchange_status, notes, timestamps
 
 point_redemptions     — id, customer_id, raffle_period_id, prize_id, purchase_id,
-                         cs_id, redeemed_at, nominal_struk, total_poin_didapat,
+                         cs_id, redeemed_at, nominal_struk, nominal_per_poin_snapshot,
+                         poin_dari_nominal, poin_bonus_pembayaran, bonus_rule_id_snapshot,
+                         payment_type_code_snapshot, payment_type_name_snapshot,
+                         total_poin_didapat,
                          status, notes, timestamps
 
 customer_point_balances — id, customer_id, raffle_period_id, prize_id, total_poin, timestamps
@@ -219,16 +214,37 @@ GET    /admin/payment-types/{id}/edit     — form edit
 PUT    /admin/payment-types/{id}          — update
 POST   /admin/payment-types/{id}/toggle-status — toggle status
 DELETE /admin/payment-types/{id}          — delete
+
+GET    /admin/bonus-point-rules            — daftar aturan bonus pembayaran
+POST   /admin/bonus-point-rules            — store aturan bonus
+PUT    /admin/bonus-point-rules/{id}       — update aturan bonus
+DELETE /admin/bonus-point-rules/{id}       — delete aturan bonus
+POST   /admin/bonus-point-rules/{id}/toggle-status — toggle status
 ```
 
 ### Point Exchange
 ```
 GET    /admin/periods/{period}/active-prizes     — daftar hadiah aktif (JSON)
+GET    /admin/customers/search                   — cari customer (JSON)
+POST   /admin/customers/quick-store              — buat customer dari form exchange
+GET    /admin/customers/{customer}/purchases     — daftar struk belum ditukar (JSON)
 POST   /admin/point-exchange                      — tukar poin (customer_id, purchase_id, prize_id)
 GET    /admin/customers/{customer}/point-balances — saldo poin customer per hadiah
 GET    /admin/point-exchange                      — history (DataTables)
 GET    /admin/point-exchange/{redemption}         — detail transaksi
 ```
+
+### Drawing Berbasis Poin
+```
+POST   /admin/prizes/{prize}/draw                 — undi customer berdasarkan saldo poin hadiah
+GET    /admin/prizes/{prize}/draw-preview         — preview pool dan kesiapan drawing
+POST   /admin/winners/{winner}/publish            — publikasikan pemenang
+POST   /admin/winners/{winner}/unpublish          — batalkan publikasi pemenang
+```
+
+Setiap poin menjadi bobot peluang. Satu customer hanya dapat menang sekali untuk hadiah yang sama. Jumlah pemenang mengikuti `prizes.quantity`, dan drawing kedua untuk hadiah yang sama ditolak.
+
+Halaman publik pemenang tersedia di `GET /winners` dan hanya menampilkan pemenang dengan status publikasi aktif.
 
 ### Admin & User Management
 ```
@@ -264,6 +280,10 @@ DELETE /admin/permissions/{id}     — delete
 | `manage-periods` | CRUD periode |
 | `manage-tenants` | CRUD tenant |
 | `manage-prizes` | CRUD hadiah + manajemen poin exchange |
+| `manage-customers` | CRUD customer dan pencarian customer |
+| `manage-payment-types` | CRUD tipe pembayaran |
+
+Permission `manage-draws` diperlukan untuk menjalankan drawing. Redemption dan drawing mencatat audit log.
 
 ## Login Default
 
@@ -292,6 +312,17 @@ php artisan serve
 
 Akses: `http://localhost:8000`
 
+### Data Demo untuk Pengujian Drawing
+
+`php artisan db:seed` juga membuat data redemption demo melalui `PointRedemptionSeeder`:
+
+- 20 redemption sukses dan saldo poin per hadiah.
+- 5 customer eligible untuk setiap hadiah pada periode `MALL-2026`.
+- Data audit untuk setiap redemption.
+- Nomor struk demo menggunakan pola `DEMO-MALL-2026-...`.
+
+Setelah login sebagai `admin@example.com` dengan password `password`, buka menu Hadiah, pilih detail hadiah, lalu gunakan panel **Pengundian Berbasis Poin** untuk melihat pool dan menjalankan draw.
+
 ## Struktur Project
 
 ```
@@ -307,7 +338,9 @@ undian-mall/
 │   │   │   │   ├── PrizeController.php
 │   │   │   │   ├── RafflePeriodController.php
 │   │   │   │   ├── PaymentTypeController.php
-│   │   │   │   └── PointExchangeController.php
+│   │   │   │   ├── PointExchangeController.php
+│   │   │   │   ├── DrawingController.php
+│   │   │   │   └── AuditLogController.php
 │   │   │   ├── AuthController.php
 │   │   │   └── DashboardController.php
 │   │   ├── Requests/
@@ -319,15 +352,16 @@ undian-mall/
 │   │   ├── RafflePeriod.php
 │   │   ├── Prize.php
 │   │   ├── Purchase.php
-│   │   ├── Coupon.php
 │   │   ├── PaymentType.php
 │   │   ├── BonusPointRule.php
 │   │   ├── PointRedemption.php
 │   │   ├── CustomerPointBalance.php
-│   │   └── Drawing.php
+│   │   ├── Drawing.php
+│   │   └── AuditLog.php
 │   └── Services/
 │       ├── PointCalculationService.php
-│       └── PointRedemptionService.php
+│       ├── PointRedemptionService.php
+│       └── PointDrawingService.php
 ├── database/
 │   ├── migrations/
 │   └── seeders/
@@ -352,7 +386,9 @@ undian-mall/
     ├── Unit/
     │   └── PointCalculationTest.php
     └── Feature/
-        └── PointRedemptionIntegrationTest.php
+      ├── PointRedemptionIntegrationTest.php
+      ├── PointDrawingIntegrationTest.php
+      └── AuditLogViewerTest.php
 ```
 
 ## Testing
@@ -366,26 +402,45 @@ php vendor/bin/phpunit tests/Feature/PointRedemptionIntegrationTest.php
 
 Test yang ada:
 - **PointCalculationTest** (Unit): 9 test — poin dari nominal, sisa hangus, bonus pembayaran, edge case.
-- **PointRedemptionIntegrationTest** (Feature): test success + kunci struk, double redemption ditolak, tanggal validasi, hadiah & struk satu periode, poin terpisah, saldo, dan banyak hadiah.
+- **PointRedemptionIntegrationTest** (Feature): test success, snapshot kalkulasi, kunci struk, validasi periode, dan saldo.
+- **PointDrawingIntegrationTest** (Feature): weighted drawing, winner unik, dan pencegahan drawing ganda.
+- **AuditLogViewerTest** (Feature): filter audit dan pembatasan permission.
+- Status saat ini: `72 tests, 356 assertions` lulus dengan `vendor/bin/phpunit`.
 
-## Perbedaan dengan Sistem Lama
+## Todo
 
-| Aspek | Sistem Lama (Coupon) | Sistem Baru (Poin) |
-|---|---|---|
-| Unit | Kupon per transaksi | Poin per hadiah |
-| Rule | 1 event = 1 threshold + unit | 1 hadiah = 1 nominal_per_poin |
-| Bonus | Tidak ada | Bonus poin dari tipe pembayaran |
-| Struk | Bisa multi kupon | 1 struk = 1 hadiah, dikunci |
-| Saldo | — | customer_point_balances per hadiah |
-| Fleksibilitas | Rule tidak berubah | Nominal aktif dikelola dari master hadiah |
+Semua todo roadmap saat ini sudah selesai.
 
-## Roadmap Selanjutnya
+- [x] **Sinkronkan dokumentasi API dan skema**
+  - Tambahkan endpoint customer: `customers/search`, `customers/quick-store`, dan `customers/{customer}/purchases`.
+  - Dokumentasikan modul `bonus-point-rules` dan permission `manage-customers` serta `manage-payment-types`.
+  - Dokumentasikan field snapshot pada `point_redemptions`: `nominal_per_poin_snapshot`, `poin_dari_nominal`, `poin_bonus_pembayaran`, `bonus_rule_id_snapshot`, `payment_type_code_snapshot`, dan `payment_type_name_snapshot`.
+  - Samakan istilah status struk menjadi `exchange_status` di README dan RULES.
+  - Perbaiki typo `exchange_start_at` yang tertulis dua kali di RULES.
 
-- [ ] Integrasi poin dengan pengundian (Drawing) — saat ini belum terhubung.
-- [ ] Generator kupon berbasis poin (jika masih diperlukan).
-- [ ] Approval workflow untuk penukaran poin.
-- [ ] Reporting & audit log.
-- [ ] Final refactoring: konsolidasi legacy coupon, cleanup.
+- [x] **Tambahkan test snapshot kalkulasi**
+  - Pastikan nilai snapshot tersimpan saat redemption sukses.
+  - Pastikan histori tetap dapat dibaca walaupun rule hadiah atau bonus pembayaran berubah.
+
+- [x] **Integrasikan poin dengan drawing**
+  - Tentukan pool peserta berdasarkan `customer_point_balances` per hadiah.
+  - Hubungkan drawing dan winner dengan peserta berbasis poin.
+  - Tambahkan validasi kuota dan pencegahan drawing ganda.
+
+- [x] **Bangun approval dan audit workflow**
+  - Approval manual tidak digunakan: redemption sukses bersifat atomic dan final.
+  - Audit log tersedia untuk redemption dan drawing.
+
+- [x] **Reporting dan audit viewer**
+  - Tambahkan halaman admin untuk melihat audit redemption dan drawing.
+  - Tambahkan filter berdasarkan periode, user, action, dan rentang waktu.
+- [x] **Publikasi pemenang**
+  - Tambahkan workflow publish/unpublish pemenang.
+  - Sediakan tampilan daftar pemenang yang siap ditampilkan ke publik.
+- [x] **Hardening operasional drawing**
+  - Tambahkan validasi periode dan status hadiah sebelum drawing.
+  - Tambahkan endpoint preview pool sebelum drawing.
+  - Row lock pada hadiah mencegah drawing ganda bersamaan; hasil drawing diaudit.
 
 ## Lisensi
 

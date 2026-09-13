@@ -5,16 +5,21 @@ namespace Tests\Feature;
 use App\Models\Purchase;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TenantManagementTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected User $adminUser;
+
     protected User $csUser;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed();
 
         $this->adminUser = User::where('email', 'admin@example.com')->first();
         $this->csUser = User::where('email', 'customerservice@example.com')->first();

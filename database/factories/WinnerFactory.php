@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Drawing;
 use App\Models\Prize;
@@ -21,7 +20,6 @@ class WinnerFactory extends Factory
             'drawing_id' => Drawing::factory(),
             'raffle_period_id' => RafflePeriod::factory(),
             'prize_id' => Prize::factory(),
-            'coupon_id' => Coupon::factory(),
             'customer_id' => Customer::factory(),
             'won_at' => now(),
             'is_published' => false,

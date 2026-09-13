@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BonusPointRuleController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\DrawingController;
 use App\Http\Controllers\Admin\PaymentTypeController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PointExchangeController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\WinnerController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -25,6 +28,9 @@ Route::middleware('auth')->group(function () {
 
     // Admin Routes
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('audit-logs', [AuditLogController::class, 'index'])
+            ->name('audit-logs.index')
+            ->middleware('permission:view-audit-logs');
         // Roles
         Route::resource('roles', RoleController::class)
             ->except(['show'])
@@ -54,10 +60,28 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:manage-tenants');
 
         // Customers
+        Route::get('customers/search', [CustomerController::class, 'search'])
+            ->name('customers.search')
+            ->middleware('permission:manage-customers');
+        Route::post('customers/quick-store', [CustomerController::class, 'store'])
+            ->name('customers.quick-store')
+            ->middleware('permission:manage-customers');
         Route::resource('customers', CustomerController::class)
             ->middleware('permission:manage-customers');
 
         // Prizes
+        Route::get('prizes/{prize}/draw-preview', [DrawingController::class, 'preview'])
+            ->name('prizes.draw-preview')
+            ->middleware('permission:manage-draws');
+        Route::post('prizes/{prize}/draw', [DrawingController::class, 'draw'])
+            ->name('prizes.draw')
+            ->middleware('permission:manage-draws');
+        Route::post('winners/{winner}/publish', [DrawingController::class, 'publishWinner'])
+            ->name('winners.publish')
+            ->middleware('permission:manage-draws');
+        Route::post('winners/{winner}/unpublish', [DrawingController::class, 'unpublishWinner'])
+            ->name('winners.unpublish')
+            ->middleware('permission:manage-draws');
         Route::post('prizes/{prize}/move', [PrizeController::class, 'move'])
             ->name('prizes.move')
             ->middleware('permission:manage-prizes');
@@ -111,3 +135,4 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::redirect('/', '/dashboard');
+Route::get('/winners', [WinnerController::class, 'index'])->name('winners.index');

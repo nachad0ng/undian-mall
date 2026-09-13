@@ -19,9 +19,9 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label">Nomor Identitas</label>
+    <label class="form-label required">Nomor Identitas</label>
     <input type="text" name="identity_number" class="form-control @error('identity_number') is-invalid @enderror"
-        value="{{ old('identity_number', $customer?->identity_number) }}">
+        value="{{ old('identity_number', $customer?->identity_number) }}" required>
     @error('identity_number')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror

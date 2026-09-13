@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\BonusPointRule;
 use App\Models\Customer;
+use App\Models\PaymentType;
 use App\Models\Prize;
 use App\Models\Purchase;
 use App\Models\RafflePeriod;
@@ -80,6 +82,65 @@ class PointRedemptionIntegrationTest extends TestCase
 
         // Cek total poin: 3 poin dari nominal + sisa 500.000 hangus
         $this->assertSame(3, $redemption->total_poin_didapat);
+    }
+
+    public function test_kalkulasi_redemption_disimpan_sebagai_snapshot_historis(): void
+    {
+        $period = RafflePeriod::factory()->create([
+            'start_at' => Carbon::now()->subDay(),
+            'end_at' => Carbon::now()->addDays(30),
+            'exchange_start_at' => Carbon::now()->subDay(),
+            'exchange_end_at' => Carbon::now()->addDays(30),
+            'status' => 'active',
+            'drawing_status' => 'pending',
+        ]);
+        $paymentType = PaymentType::firstOrCreate(
+            ['code' => 'KARTU_MEGA'],
+            ['name' => 'Kartu Kredit Bank Mega', 'is_active' => true],
+        );
+        $bonusRule = BonusPointRule::factory()->create([
+            'raffle_period_id' => $period->id,
+            'payment_type_id' => $paymentType->id,
+            'bonus_poin' => 2,
+            'is_active' => true,
+        ]);
+        $prize = Prize::factory()->create([
+            'raffle_period_id' => $period->id,
+            'nominal_per_poin' => 1_000_000,
+            'active_for_exchange' => true,
+            'status' => 'active',
+        ]);
+        $customer = Customer::factory()->create();
+        $purchase = Purchase::factory()->create([
+            'raffle_period_id' => $period->id,
+            'customer_id' => $customer->id,
+            'payment_type_id' => $paymentType->id,
+            'exchange_status' => 'belum',
+            'purchased_at' => Carbon::now()->subHours(2),
+            'amount' => 3_500_000,
+        ]);
+
+        $redemption = $this->service->redeem($customer, $purchase, $prize);
+
+        $this->assertSame(1_000_000, $redemption->nominal_per_poin_snapshot);
+        $this->assertSame(3, $redemption->poin_dari_nominal);
+        $this->assertSame(2, $redemption->poin_bonus_pembayaran);
+        $this->assertSame($bonusRule->id, $redemption->bonus_rule_id_snapshot);
+        $this->assertSame('KARTU_MEGA', $redemption->payment_type_code_snapshot);
+        $this->assertSame('Kartu Kredit Bank Mega', $redemption->payment_type_name_snapshot);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'point_redemption.created',
+            'auditable_type' => $redemption::class,
+            'auditable_id' => $redemption->id,
+        ]);
+
+        $prize->update(['nominal_per_poin' => 500_000]);
+        $bonusRule->update(['bonus_poin' => 9]);
+
+        $this->assertSame(1_000_000, $redemption->fresh()->nominal_per_poin_snapshot);
+        $this->assertSame(3, $redemption->fresh()->poin_dari_nominal);
+        $this->assertSame(2, $redemption->fresh()->poin_bonus_pembayaran);
+        $this->assertSame(5, $redemption->fresh()->total_poin_didapat);
     }
 
     public function test_struk_yang_sudah_ditukar_tidak_bisa_dipakai_kembali(): void

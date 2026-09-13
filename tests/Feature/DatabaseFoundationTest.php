@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Drawing;
 use App\Models\Prize;
@@ -72,7 +71,6 @@ class DatabaseFoundationTest extends TestCase
             'tenants',
             'prizes',
             'purchases',
-            'coupons',
             'drawings',
             'winners',
         ];
@@ -114,21 +112,7 @@ class DatabaseFoundationTest extends TestCase
         $this->assertTrue($this->tenant->purchases->contains($purchase));
         $this->assertTrue($this->user->purchasesEntered->contains($purchase));
 
-        // 3. Coupon relationship
-        $coupon = Coupon::create([
-            'raffle_period_id' => $this->period->id,
-            'purchase_id' => $purchase->id,
-            'customer_id' => $this->customer->id,
-            'coupon_number' => 'CPN-TEST-REL-001',
-            'status' => 'active',
-        ]);
-        $this->assertEquals($purchase->id, $coupon->purchase->id);
-        $this->assertEquals($this->customer->id, $coupon->customer->id);
-        $this->assertEquals($this->period->id, $coupon->rafflePeriod->id);
-        $this->assertTrue($purchase->coupons->contains($coupon));
-        $this->assertTrue($this->customer->coupons->contains($coupon));
-
-        // 4. Drawing relationship
+        // 3. Drawing relationship
         $drawing = Drawing::create([
             'raffle_period_id' => $this->period->id,
             'prize_id' => $prize->id,
@@ -142,27 +126,23 @@ class DatabaseFoundationTest extends TestCase
         $this->assertEquals($this->user->id, $drawing->executedBy->id);
         $this->assertTrue($this->user->drawingsExecuted->contains($drawing));
 
-        // 5. Winner relationship
+        // 4. Winner relationship
         $winner = Winner::create([
             'drawing_id' => $drawing->id,
             'raffle_period_id' => $this->period->id,
             'prize_id' => $prize->id,
-            'coupon_id' => $coupon->id,
             'customer_id' => $this->customer->id,
             'won_at' => now(),
             'is_published' => true,
             'published_at' => now(),
         ]);
         $this->assertEquals($drawing->id, $winner->drawing->id);
-        $this->assertEquals($coupon->id, $winner->coupon->id);
         $this->assertEquals($prize->id, $winner->prize->id);
         $this->assertEquals($this->customer->id, $winner->customer->id);
-        $this->assertEquals($winner->id, $coupon->winner->id);
 
         // Cleanup test data
         $winner->delete();
         $drawing->delete();
-        $coupon->delete();
         $purchase->forceDelete();
         $prize->delete();
     }
@@ -239,44 +219,6 @@ class DatabaseFoundationTest extends TestCase
         $tenant2->forceDelete();
     }
 
-    public function test_unique_coupon_number_constraint(): void
-    {
-        $purchase = Purchase::create([
-            'raffle_period_id' => $this->period->id,
-            'customer_id' => $this->customer->id,
-            'tenant_id' => $this->tenant->id,
-            'entered_by' => $this->user->id,
-            'receipt_number' => 'INV-CPN-TEST-001',
-            'purchased_at' => now(),
-            'amount' => 100000,
-        ]);
-
-        $c1 = Coupon::create([
-            'raffle_period_id' => $this->period->id,
-            'purchase_id' => $purchase->id,
-            'customer_id' => $this->customer->id,
-            'coupon_number' => 'UNIQUE-CPN-001',
-            'status' => 'active',
-        ]);
-
-        $this->assertNotNull($c1->id);
-
-        $this->expectException(QueryException::class);
-
-        try {
-            Coupon::create([
-                'raffle_period_id' => $this->period->id,
-                'purchase_id' => $purchase->id,
-                'customer_id' => $this->customer->id,
-                'coupon_number' => 'UNIQUE-CPN-001',
-                'status' => 'active',
-            ]);
-        } finally {
-            $c1->delete();
-            $purchase->forceDelete();
-        }
-    }
-
     public function test_foreign_key_integrity_on_invalid_relation(): void
     {
         $this->expectException(QueryException::class);
@@ -298,6 +240,7 @@ class DatabaseFoundationTest extends TestCase
         $customer = Customer::create([
             'name' => 'Temporary Customer',
             'phone' => '081288887777',
+            'identity_number' => '3171000000000099',
         ]);
 
         $customerId = $customer->id;

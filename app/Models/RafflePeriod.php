@@ -46,11 +46,6 @@ class RafflePeriod extends Model
         return $this->hasMany(Purchase::class);
     }
 
-    public function coupons(): HasMany
-    {
-        return $this->hasMany(Coupon::class);
-    }
-
     public function drawings(): HasMany
     {
         return $this->hasMany(Drawing::class);

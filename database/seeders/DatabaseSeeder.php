@@ -25,7 +25,6 @@ class DatabaseSeeder extends Seeder
             'manage-periods',
             'manage-prizes',
             'manage-payment-types',
-            'manage-coupons',
             'manage-transactions',
             'manage-draws',
             'view-reports',
@@ -53,7 +52,6 @@ class DatabaseSeeder extends Seeder
             'manage-periods',
             'manage-prizes',
             'manage-payment-types',
-            'manage-coupons',
             'manage-transactions',
             'manage-draws',
             'view-reports',
@@ -121,5 +119,6 @@ class DatabaseSeeder extends Seeder
         $this->call(TenantSeeder::class);
         $this->call(MasterDataSeeder::class);
         $this->call(CustomerSeeder::class);
+        $this->call(PointRedemptionSeeder::class);
     }
 }

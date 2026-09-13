@@ -75,12 +75,13 @@ class PointExchangeController extends Controller
     public function store(StorePointRedemptionRequest $request)
     {
         $validated = $request->validated();
+        $user = auth()->user();
 
         $customer = Customer::findOrFail($validated['customer_id']);
         $prize = Prize::findOrFail($validated['prize_id']);
 
         try {
-            [$redemption, $purchase] = DB::transaction(function () use ($validated, $customer, $prize) {
+            [$redemption, $purchase] = DB::transaction(function () use ($validated, $customer, $prize, $user) {
                 $purchase = isset($validated['purchase_id'])
                     ? Purchase::findOrFail($validated['purchase_id'])
                     : Purchase::create([
@@ -100,7 +101,7 @@ class PointExchangeController extends Controller
                     $customer,
                     $purchase,
                     $prize,
-                    $validated['cs_id'] ?? null,
+                    $user->id,
                     $validated['notes'] ?? null,
                 );
 
@@ -206,14 +207,18 @@ class PointExchangeController extends Controller
     // ---------------------------------------------------------------------
     public function history(Request $request)
     {
-
         $authUser = $request->user();
         if (! $authUser->can('manage-prizes') && ! $authUser->can('manage-users')) {
             abort(403, 'Unauthorized');
         }
 
         if ($request->wantsJson()) {
-            $query = PointRedemption::with(['customer', 'prize', 'purchase', 'cs'])
+            $query = PointRedemption::query()
+                // WAJIB: qualify kolom tabel utama secara eksplisit,
+                // supaya id-nya tidak ketimpa oleh join otomatis Yajra
+                // saat memproses kolom relasi (customer.name, prize.name, dst).
+                ->select('point_redemptions.*')
+                ->with(['customer', 'prize', 'purchase', 'cs'])
                 ->latest('point_redemptions.created_at');
 
             return DataTables::eloquent($query)
@@ -223,8 +228,37 @@ class PointExchangeController extends Controller
                 ->addColumn('cs_name', fn (PointRedemption $r) => $r->cs ? $r->cs->name : '-')
                 ->addColumn('redeemed_at_formatted', fn (PointRedemption $r) => $r->redeemed_at->format('d M Y H:i'))
                 ->addColumn('actions', fn (PointRedemption $r) => [
-                    'show_url' => route('admin.point-exchange.show', $r),
+                    'show_url' => route('admin.point-exchange.show', ['redemption' => $r->getKey()]),
                 ])
+                // Definisikan eksplisit cara search & sort untuk kolom relasi,
+                // supaya Yajra TIDAK menebak/melakukan join otomatis lagi.
+                ->filterColumn('customer_name', function ($query, $keyword) {
+                    $query->whereHas('customer', fn ($q) => $q->where('name', 'like', "%{$keyword}%"));
+                })
+                ->filterColumn('prize_name', function ($query, $keyword) {
+                    $query->whereHas('prize', fn ($q) => $q->where('name', 'like', "%{$keyword}%"));
+                })
+                ->filterColumn('receipt_number', function ($query, $keyword) {
+                    $query->whereHas('purchase', fn ($q) => $q->where('receipt_number', 'like', "%{$keyword}%"));
+                })
+                ->filterColumn('cs_name', function ($query, $keyword) {
+                    $query->whereHas('cs', fn ($q) => $q->where('name', 'like', "%{$keyword}%"));
+                })
+                ->orderColumn('customer_name', function ($query, $order) {
+                    $query->orderBy(
+                        Customer::select('name')
+                            ->whereColumn('customers.id', 'point_redemptions.customer_id'),
+                        $order
+                    );
+                })
+                ->orderColumn('prize_name', function ($query, $order) {
+                    $query->orderBy(
+                        Prize::select('name')
+                            ->whereColumn('prizes.id', 'point_redemptions.prize_id'),
+                        $order
+                    );
+                })
+                ->rawColumns(['actions'])
                 ->make(true);
         }
 
@@ -233,16 +267,15 @@ class PointExchangeController extends Controller
             ->where('drawing_status', '!=', 'completed')
             ->orderByDesc('start_at')
             ->get(['id', 'name']);
-        $customers = Customer::query()
-            ->orderBy('name')
-            ->get(['id', 'name', 'phone']);
         $tenants = Tenant::query()
             ->where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'name']);
         $paymentTypes = PaymentType::active()->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.point-exchange.index', compact('periods', 'customers', 'tenants', 'paymentTypes'));
+        $activePeriod = $periods->first();
+
+        return view('admin.point-exchange.index', compact('periods', 'activePeriod', 'tenants', 'paymentTypes'));
     }
 
     // ---------------------------------------------------------------------
@@ -250,6 +283,7 @@ class PointExchangeController extends Controller
     // ---------------------------------------------------------------------
     public function show(PointRedemption $redemption)
     {
+
         $authUser = request()->user();
         if (! $authUser->can('manage-prizes') && ! $authUser->can('manage-users')) {
             abort(403, 'Unauthorized');
@@ -257,6 +291,25 @@ class PointExchangeController extends Controller
 
         $redemption->load(['customer', 'prize', 'purchase', 'cs', 'rafflePeriod']);
 
-        return view('admin.point-exchange.show', compact('redemption'));
+        $redemption->purchase?->load('paymentType');
+
+        $pointDetails = [
+            'nominal_per_poin' => $redemption->nominal_per_poin_snapshot
+                ?? $redemption->prize->nominal_per_poin,
+            'poin_dari_nominal' => $redemption->poin_dari_nominal
+                ?? ($redemption->nominal_per_poin_snapshot
+                    ? intdiv($redemption->nominal_struk, $redemption->nominal_per_poin_snapshot)
+                    : ($redemption->prize->nominal_per_poin
+                        ? intdiv($redemption->nominal_struk, $redemption->prize->nominal_per_poin)
+                        : 0)),
+            'poin_bonus_pembayaran' => $redemption->poin_bonus_pembayaran ?? 0,
+            'bonus_rule_id' => $redemption->bonus_rule_id_snapshot,
+            'payment_type_name' => $redemption->payment_type_name_snapshot
+                ?? $redemption->purchase?->paymentType?->name,
+            'payment_type_code' => $redemption->payment_type_code_snapshot
+                ?? $redemption->purchase?->paymentType?->code,
+        ];
+
+        return view('admin.point-exchange.show', compact('redemption', 'pointDetails'));
     }
 }

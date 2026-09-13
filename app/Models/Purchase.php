@@ -6,7 +6,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Purchase extends Model
@@ -57,11 +56,6 @@ class Purchase extends Model
     public function paymentType(): BelongsTo
     {
         return $this->belongsTo(PaymentType::class, 'payment_type_id');
-    }
-
-    public function coupons(): HasMany
-    {
-        return $this->hasMany(Coupon::class);
     }
 
     public function pointRedemption(): BelongsTo

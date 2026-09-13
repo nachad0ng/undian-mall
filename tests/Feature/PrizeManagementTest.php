@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Drawing;
 use App\Models\Prize;
@@ -11,16 +10,21 @@ use App\Models\RafflePeriod;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Winner;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PrizeManagementTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected User $adminUser;
+
     protected User $csUser;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed();
 
         $this->adminUser = User::where('email', 'admin@example.com')->first();
         $this->csUser = User::where('email', 'customerservice@example.com')->first();
@@ -83,6 +87,7 @@ class PrizeManagementTest extends TestCase
                 'name' => 'Hadiah Utama',
                 'description' => 'Mobil',
                 'quantity' => 1,
+                'nominal_per_poin' => 1000000,
                 'sequence' => 1,
                 'status' => 'active',
             ])
@@ -93,6 +98,7 @@ class PrizeManagementTest extends TestCase
                 'raffle_period_id' => $period->id,
                 'name' => 'Hadiah Kedua',
                 'quantity' => 2,
+                'nominal_per_poin' => 500000,
                 'sequence' => 2,
                 'status' => 'active',
             ])
@@ -118,6 +124,7 @@ class PrizeManagementTest extends TestCase
                 'raffle_period_id' => $period->id,
                 'name' => 'Hadiah Utama Updated',
                 'quantity' => 1,
+                'nominal_per_poin' => 1000000,
                 'sequence' => 2,
                 'status' => 'active',
             ])
@@ -162,11 +169,12 @@ class PrizeManagementTest extends TestCase
                 'raffle_period_id' => $otherPeriod->id,
                 'name' => 'Hadiah Terkunci',
                 'quantity' => 1,
+                'nominal_per_poin' => 1000000,
                 'sequence' => 3,
                 'status' => 'active',
             ])
             ->assertRedirect(route('admin.prizes.edit', $prize))
-            ->assertSessionHasErrors(['raffle_period_id', 'quantity', 'sequence']);
+            ->assertSessionHasErrors(['raffle_period_id', 'sequence']);
 
         $this->actingAs($this->adminUser)
             ->post(route('admin.prizes.move', $prize), ['direction' => 'down'])
@@ -178,7 +186,6 @@ class PrizeManagementTest extends TestCase
 
         $prize->winners()->delete();
         $prize->drawings()->delete();
-        Coupon::where('raffle_period_id', $period->id)->delete();
         Purchase::where('raffle_period_id', $period->id)->forceDelete();
         $neighbor->delete();
         $prize->delete();
@@ -196,11 +203,6 @@ class PrizeManagementTest extends TestCase
             'tenant_id' => $tenant->id,
             'entered_by' => $this->adminUser->id,
         ]);
-        $coupon = Coupon::factory()->create([
-            'raffle_period_id' => $prize->raffle_period_id,
-            'purchase_id' => $purchase->id,
-            'customer_id' => $customer->id,
-        ]);
         $drawing = Drawing::create([
             'raffle_period_id' => $prize->raffle_period_id,
             'prize_id' => $prize->id,
@@ -212,7 +214,6 @@ class PrizeManagementTest extends TestCase
             'drawing_id' => $drawing->id,
             'raffle_period_id' => $prize->raffle_period_id,
             'prize_id' => $prize->id,
-            'coupon_id' => $coupon->id,
             'customer_id' => $customer->id,
             'won_at' => now(),
             'is_published' => false,

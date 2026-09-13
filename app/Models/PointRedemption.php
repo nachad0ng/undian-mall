@@ -18,6 +18,12 @@ class PointRedemption extends Model
         'cs_id',
         'redeemed_at',
         'nominal_struk',
+        'nominal_per_poin_snapshot',
+        'poin_dari_nominal',
+        'poin_bonus_pembayaran',
+        'bonus_rule_id_snapshot',
+        'payment_type_code_snapshot',
+        'payment_type_name_snapshot',
         'total_poin_didapat',
         'status',
         'notes',
@@ -28,6 +34,10 @@ class PointRedemption extends Model
         return [
             'redeemed_at' => 'datetime',
             'nominal_struk' => 'integer',
+            'nominal_per_poin_snapshot' => 'integer',
+            'poin_dari_nominal' => 'integer',
+            'poin_bonus_pembayaran' => 'integer',
+            'bonus_rule_id_snapshot' => 'integer',
             'total_poin_didapat' => 'integer',
         ];
     }

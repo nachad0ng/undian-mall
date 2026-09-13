@@ -8,7 +8,9 @@ class StoreCustomerRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('manage-customers') ?? false;
+        $user = $this->user();
+
+        return $user && ($user->can('manage-customers') || $user->can('manage-prizes'));
     }
 
     public function rules(): array
@@ -16,7 +18,7 @@ class StoreCustomerRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
-            'identity_number' => ['nullable', 'string', 'max:50'],
+            'identity_number' => ['required', 'string', 'max:50', 'unique:customers,identity_number'],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string'],
         ];

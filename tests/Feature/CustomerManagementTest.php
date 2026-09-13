@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use App\Models\Purchase;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CustomerManagementTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected User $adminUser;
 
     protected User $auditorUser;
@@ -16,6 +19,7 @@ class CustomerManagementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed();
 
         $this->adminUser = User::where('email', 'admin@example.com')->first();
         $this->auditorUser = User::where('email', 'auditor@example.com')->first();

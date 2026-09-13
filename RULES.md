@@ -77,8 +77,8 @@ total_poin = poin_dari_nominal + (bonus_poin jika ada match)
 ### 3.1 Struk
 | Aturan | Keterangan |
 |---|---|
-| **1 struk = 1 hadiah** | Setelah struk digunakan untuk satu hadiah, struk terkunci (`status_tukar = 'sudah'`). |
-| **Tidak boleh dipakai ulang** | Struk yang sudah ada di `point_redemptions` atau `status_tukar = 'sudah'` tidak boleh dipakai lagi. |
+| **1 struk = 1 hadiah** | Setelah struk digunakan untuk satu hadiah, struk terkunci (`exchange_status = 'sudah'`). |
+| **Tidak boleh dipakai ulang** | Struk yang sudah ada di `point_redemptions` atau `exchange_status = 'sudah'` tidak boleh dipakai lagi. |
 | **Tanggal belanja valid** | `purchased_at` harus berada di antara `start_at` dan `end_at` periode. |
 | **Tipe pembayaran dicatat** | `payment_type_id` di struk (opsional) — jika ada, dicek untuk bonus poin. |
 
@@ -94,7 +94,7 @@ total_poin = poin_dari_nominal + (bonus_poin jika ada match)
 |---|---|
 | **Tanggal tukar valid** | Waktu penukaran harus berada di antara `exchange_start_at` dan `exchange_end_at`. |
 | **Rentang belanja** | Struk harus dibeli di dalam rentang `start_at`–`end_at` periode. |
-| **Saat ini disamakan** | `exchange_start_at` dan `exchange_start_at` default sama dengan `start_at`/`end_at`, tapi bisa dipisah nanti. |
+| **Saat ini disamakan** | `exchange_start_at` dan `exchange_end_at` default sama dengan `start_at`/`end_at`, tapi bisa dipisah nanti. |
 
 ### 3.4 Poin yang Sudah Tercatat
 | Aturan | Keterangan |
@@ -119,7 +119,7 @@ total_poin = poin_dari_nominal + (bonus_poin jika ada match)
 | `purchased_at` | Tanggal belanja |
 | `amount` | Nominal belanja (Rp) |
 | `payment_type_id` | FK ke payment_types (opsional) |
-| `status_tukar` | `'belum'` atau `'sudah'` |
+| `exchange_status` | `'belum'` atau `'sudah'` |
 | `created_at`, `updated_at` | Timestamp |
 
 ### 4.2 Tabel `prizes` (Hadiah)
@@ -165,6 +165,12 @@ total_poin = poin_dari_nominal + (bonus_poin jika ada match)
 | `cs_id` | FK ke user (petugas CS) |
 | `redeemed_at` | Waktu tukar |
 | `nominal_struk` | Nominal struk yang ditukar |
+| `nominal_per_poin_snapshot` | Nominal poin hadiah saat redemption |
+| `poin_dari_nominal` | Poin dari nominal struk |
+| `poin_bonus_pembayaran` | Bonus pembayaran yang dipakai |
+| `bonus_rule_id_snapshot` | ID aturan bonus yang dipakai |
+| `payment_type_code_snapshot` | Kode pembayaran saat redemption |
+| `payment_type_name_snapshot` | Nama pembayaran saat redemption |
 | `total_poin_didapat` | Hasil kalkulasi |
 | `status` | `'success'` / `'failed'` / `'rejected'` |
 | `notes` | Catatan (opsional) |
@@ -182,7 +188,17 @@ total_poin = poin_dari_nominal + (bonus_poin jika ada match)
 
 > **Composite unique:** `(customer_id, raffle_period_id, prize_id)`.
 
-### 4.7 Histori Rule Poin (Rencana Masa Depan)
+### 4.7 Tabel `audit_logs` (Audit)
+| Kolom | Keterangan |
+|---|---|
+| `user_id` | User pelaksana, nullable |
+| `action` | `point_redemption.created` atau `drawing.completed` |
+| `auditable_type` | Model target aksi |
+| `auditable_id` | ID target aksi |
+| `metadata` | Konteks dan snapshot aksi dalam JSON |
+| `created_at` | Waktu pencatatan |
+
+### 4.8 Histori Rule Poin (Rencana Masa Depan)
 > Belum digunakan pada implementasi saat ini. Jika histori diperlukan, tabel ini dapat ditambahkan kemudian.
 
 ---
@@ -254,6 +270,28 @@ GET /admin/point-exchange/{redemption}
 ```
 Detail satu transaksi penukaran.
 
+### 5.6 Drawing Berbasis Poin
+```
+POST /admin/prizes/{prize}/draw
+GET /admin/prizes/{prize}/draw-preview
+```
+
+Drawing mengambil `customer_point_balances` untuk hadiah tersebut. Total poin menjadi bobot peluang, customer yang sudah terpilih dikeluarkan dari pengundian berikutnya untuk hadiah yang sama, dan jumlah pemenang mengikuti `prizes.quantity`.
+
+Drawing hanya boleh dijalankan jika periode berstatus `active`, hadiah berstatus `active`, kuota cukup, dan hadiah belum pernah diundi. Preview mengembalikan `pool_count`, `eligible_customers`, `quantity`, `can_draw`, dan alasan jika belum siap. Row lock pada hadiah mencegah dua proses drawing berjalan bersamaan untuk hadiah yang sama.
+
+### 5.7 Publikasi Pemenang
+```
+POST /admin/winners/{winner}/publish
+POST /admin/winners/{winner}/unpublish
+GET  /winners
+```
+
+Hanya pemenang dengan `is_published = true` yang ditampilkan pada halaman publik. Publish dan unpublish dicatat sebagai audit action `winner.published` dan `winner.unpublished`.
+
+### 5.8 Approval dan Audit
+Redemption tidak memakai approval manual. Proses redemption berhasil dilakukan dalam satu transaksi database, mengunci struk dan menambah saldo secara atomic, lalu tidak dapat diubah atau dibatalkan. Audit dicatat pada `audit_logs` untuk redemption dan drawing.
+
 ---
 
 ## 6. Hak Akses (Permission)
@@ -298,21 +336,7 @@ Detail satu transaksi penukaran.
 
 ---
 
-## 8. Perbedaan dengan Sistem Lama (Coupon)
-
-| Aspek | Sistem Lama (Coupon) | Sistem Baru (Poin) |
-|---|---|---|
-| Unit | Kupon per transaksi | Poin per hadiah |
-| Konfigurasi | 1 event = 1 threshold + unit | 1 hadiah = 1 nominal_per_poin |
-| Bonus | Tidak ada | Bonus poin dari tipe pembayaran |
-| Struk | Bisa dapat multi kupon | 1 struk = 1 hadiah, dikunci setelah pakai |
-| Saldo | Tidak ada | `customer_point_balances` per hadiah |
-| Fleksibilitas | Rule tidak berubah di tengah jalan | Nominal aktif dikelola dari master hadiah |
-| Carry-over | — | Sisa nominal hangus (tidak carry-over) |
-
----
-
-## 9. Flowchart Singkat
+## 8. Flowchart Singkat
 
 ```
 [Customer Belanja] → [Struk (Purchase)] → [CS Proses]
@@ -333,17 +357,19 @@ Detail satu transaksi penukaran.
                                                ├─ [Simpan PointRedemption]
                                                │   └─ 1 struk = 1 hadiah
                                                │
-                                               ├─ [Kunci Struk] → status_tukar = 'sudah'
+                                               ├─ [Kunci Struk] → exchange_status = 'sudah'
                                                │
                                                └─ [Update Saldo] → customer_point_balances
 ```
 
 ---
 
-## 10. Catatan Implementasi
+## 9. Catatan Implementasi
 
 1. **Tidak ada tabel detail banyak struk** — karena 1 struk = 1 hadiah, tabel `point_redemptions` cukup 1 baris per struk (kolom `purchase_id` sebagai unique).
 2. **Nominal poin dikelola dari hadiah** — Form master hadiah menyimpan `nominal_per_poin` yang digunakan saat penukaran.
 3. **Bonus per struk** — Bonus poin dihitung per struk, bukan per transaksi penukaran.
 4. **Sisa hangus** — Sisa nominal yang tidak genap kelipatan tidak di-carry-over.
 5. **Update skema** — Kolom `exchange_start_at` dan `exchange_end_at` ditambahkan di `raffle_periods` untuk antisipasi pemisahan rentang belanja dan tukar di masa depan (saat ini disamakan).
+6. **Drawing berbasis poin** — Setiap poin menjadi bobot peluang; customer yang sudah terpilih tidak dipilih kembali untuk hadiah yang sama.
+7. **Audit immutable** — Redemption dan drawing yang berhasil dicatat di `audit_logs` dan tidak memiliki endpoint edit atau delete.

@@ -41,6 +41,30 @@ class CustomerController extends Controller
         return view('admin.customers.index');
     }
 
+    public function search(Request $request)
+    {
+        $search = trim((string) $request->input('q'));
+
+        $customers = Customer::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('identity_number', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name', 'phone']);
+
+        return response()->json([
+            'results' => $customers->map(fn (Customer $customer) => [
+                'id' => $customer->id,
+                'text' => "{$customer->name} ({$customer->phone})",
+            ]),
+        ]);
+    }
+
     public function create()
     {
         return view('admin.customers.create');
@@ -49,6 +73,16 @@ class CustomerController extends Controller
     public function store(StoreCustomerRequest $request)
     {
         $customer = Customer::create($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "Pelanggan '{$customer->name}' berhasil ditambahkan.",
+                'customer' => [
+                    'id' => $customer->id,
+                    'text' => "{$customer->name} ({$customer->phone})",
+                ],
+            ], 201);
+        }
 
         return redirect()->route('admin.customers.index')
             ->with('success', "Pelanggan '{$customer->name}' berhasil ditambahkan.");

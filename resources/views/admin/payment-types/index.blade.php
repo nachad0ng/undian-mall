@@ -36,6 +36,25 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .customer-select-combo .select2-container {
+            flex: 1 1 auto;
+        }
+
+        .customer-select-combo .select2-container .select2-selection--single {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+
+        .customer-select-combo>.btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+    </style>
+@endpush
+
 @push('scripts')
     @include('layouts.plugins.datatables', ['ajax_same_page' => true])
     <script>

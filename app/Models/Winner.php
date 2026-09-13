@@ -14,7 +14,6 @@ class Winner extends Model
         'drawing_id',
         'raffle_period_id',
         'prize_id',
-        'coupon_id',
         'customer_id',
         'won_at',
         'is_published',
@@ -44,11 +43,6 @@ class Winner extends Model
     public function prize(): BelongsTo
     {
         return $this->belongsTo(Prize::class);
-    }
-
-    public function coupon(): BelongsTo
-    {
-        return $this->belongsTo(Coupon::class);
     }
 
     public function customer(): BelongsTo

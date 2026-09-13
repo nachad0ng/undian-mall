@@ -9,7 +9,7 @@
                 <div class="row mb-3 align-items-center">
                     <div class="col">
                         <h2 class="page-title">Periode Undian</h2>
-                        <div class="text-secondary mt-1">Kelola program periode undian belanja mall dan aturan kupon</div>
+                        <div class="text-secondary mt-1">Kelola periode belanja, penukaran poin, dan pengundian mall</div>
                     </div>
                     <div class="col-auto">
                         <a href="{{ route('admin.raffle-periods.create') }}" class="btn btn-primary">
