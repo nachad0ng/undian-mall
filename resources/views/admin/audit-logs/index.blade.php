@@ -48,6 +48,9 @@
                         <div class="col-md-2 d-flex align-items-end gap-2">
                             <button class="btn btn-primary" type="submit">Filter</button>
                             <a class="btn btn-outline-secondary" href="{{ route('admin.audit-logs.index') }}">Reset</a>
+                            <a class="btn btn-success" href="{{ route('admin.audit-logs.export') }}?{{ http_build_query(request()->except('page')) }}">
+                                <i class="bi bi-download me-1"></i>Export Excel
+                            </a>
                         </div>
                     </div>
                 </form>

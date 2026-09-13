@@ -157,11 +157,11 @@
                             </div>
                         </li>
                     @endif
-                    @if (auth()->user()->hasPermissionTo('view-audit-logs'))
-                        <li class="nav-item {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('admin.audit-logs.index') }}">
-                                <span class="nav-link-icon"><i class="bi bi-clock-history"></i></span>
-                                <span class="nav-link-title">Audit Log</span>
+                    @if (auth()->user()->hasPermissionTo('view-reports') || auth()->user()->hasPermissionTo('view-audit-logs'))
+                        <li class="nav-item {{ request()->routeIs('admin.audit-logs.*') || request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('admin.reports.index') }}">
+                                <span class="nav-link-icon"><i class="bi bi-file-earmark-text"></i></span>
+                                <span class="nav-link-title">Laporan</span>
                             </a>
                         </li>
                     @endif

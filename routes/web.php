@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PointExchangeController;
 use App\Http\Controllers\Admin\PrizeController;
 use App\Http\Controllers\Admin\RafflePeriodController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
@@ -30,6 +31,26 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs.index')
+            ->middleware('permission:view-audit-logs');
+        Route::get('audit-logs/export', [AuditLogController::class, 'export'])
+            ->name('audit-logs.export')
+            ->middleware('permission:view-audit-logs');
+
+        // Reports & Exports
+        Route::get('reports', [ReportController::class, 'index'])
+            ->name('reports.index')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+        Route::get('reports/point-redemptions/export', [ReportController::class, 'exportPointRedemptions'])
+            ->name('reports.point-redemptions.export')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+        Route::get('reports/customer-point-balances/export', [ReportController::class, 'exportCustomerPointBalances'])
+            ->name('reports.customer-point-balances.export')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+        Route::get('reports/winners/export', [ReportController::class, 'exportWinners'])
+            ->name('reports.winners.export')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+        Route::get('reports/audit-logs/export', [ReportController::class, 'exportAuditLogs'])
+            ->name('reports.audit-logs.export')
             ->middleware('permission:view-audit-logs');
         // Roles
         Route::resource('roles', RoleController::class)

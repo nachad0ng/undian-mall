@@ -99,6 +99,14 @@
                 </div>
 
                 <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0">Riwayat Penukaran Poin</h3>
+                            <a class="btn btn-success" href="{{ route('admin.reports.point-redemptions.export') }}">
+                                <i class="bi bi-download me-1"></i>Export Excel
+                            </a>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table id="table" class="table table-vcenter card-table" style="width:100%">
                             <thead>

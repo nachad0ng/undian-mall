@@ -405,7 +405,39 @@ Test yang ada:
 - **PointRedemptionIntegrationTest** (Feature): test success, snapshot kalkulasi, kunci struk, validasi periode, dan saldo.
 - **PointDrawingIntegrationTest** (Feature): weighted drawing, winner unik, dan pencegahan drawing ganda.
 - **AuditLogViewerTest** (Feature): filter audit dan pembatasan permission.
-- Status saat ini: `72 tests, 356 assertions` lulus dengan `vendor/bin/phpunit`.
+- **ReportExportTest** (Feature): export laporan ke Excel (point redemption, customer point balances, winners, audit logs).
+- Status saat ini: `85 tests, 414 assertions` lulus dengan `vendor/bin/phpunit`.
+
+## Laporan & Export Excel
+
+Sistem menyediakan fitur export laporan ke format Excel (.xlsx) yang dapat diunduh langsung.
+
+### Permission Akses Laporan
+
+| Permission | Akses |
+|---|---|
+| `view-reports` | Lihat halaman laporan & export (Manager, CS) |
+| `view-audit-logs` | Export audit log khusus (Auditor saja) |
+| `manage-prizes` | Full export access (Super Admin, Manager) |
+| `manage-users` | Full export access (Super Admin, Manager) |
+
+### Endpoint Export
+
+```
+GET /admin/reports                                          — Halaman laporan (filter & export)
+GET /admin/reports/point-redemptions/export               — Export Point Redemption ke Excel
+GET /admin/reports/customer-point-balances/export         — Export Saldo Poin Customer ke Excel
+GET /admin/reports/winners/export                         — Export Pemenang Undian ke Excel
+GET /admin/reports/audit-logs/export                      — Export Audit Log ke Excel (Auditor only)
+GET /admin/audit-logs/export                              — Export Audit Log dari halaman audit log
+```
+
+### Filter yang Tersedia
+
+- **Point Redemption Export**: periode, hadiah, rentang tanggal
+- **Customer Point Balances Export**: periode, hadiah
+- **Winners Export**: periode, hadiah, rentang tanggal, status publikasi
+- **Audit Logs Export**: action, user, rentang tanggal
 
 ## Todo
 
@@ -434,6 +466,8 @@ Semua todo roadmap saat ini sudah selesai.
 - [x] **Reporting dan audit viewer**
   - Tambahkan halaman admin untuk melihat audit redemption dan drawing.
   - Tambahkan filter berdasarkan periode, user, action, dan rentang waktu.
+  - Tambahkan fitur export laporan ke Excel (point redemption, customer point balances, winners, audit logs).
+  - Tambahkan halaman laporan terpusat di `/admin/reports` dengan form filter export.
 - [x] **Publikasi pemenang**
   - Tambahkan workflow publish/unpublish pemenang.
   - Sediakan tampilan daftar pemenang yang siap ditampilkan ke publik.
