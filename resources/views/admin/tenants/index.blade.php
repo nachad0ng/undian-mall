@@ -126,7 +126,7 @@
                 ],
                 language: {
                     emptyTable: 'Belum ada data tenant.',
-                    processing: 'Memuat...'
+                    processing: '<div class="spinner-border spinner-border-sm text-primary" role="status"></div><span>Memuat data...</span>'
                 },
 
                 createdRow: function(row, data, dataIndex) {

@@ -102,8 +102,8 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h3 class="card-title mb-0">Riwayat Penukaran Poin</h3>
-                            <a class="btn btn-success" href="{{ route('admin.reports.point-redemptions.export') }}">
-                                <i class="bi bi-download me-1"></i>Export Excel
+                            <a class="btn btn-success" href="{{ route('admin.reports.point-redemptions.index') }}">
+                                <i class="bi bi-download me-1"></i>Laporan Export
                             </a>
                         </div>
                     </div>

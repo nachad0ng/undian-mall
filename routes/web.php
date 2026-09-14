@@ -36,19 +36,50 @@ Route::middleware('auth')->group(function () {
             ->name('audit-logs.export')
             ->middleware('permission:view-audit-logs');
 
-        // Reports & Exports
-        Route::get('reports', [ReportController::class, 'index'])
+        Route::get('reports', [ReportController::class, 'reportsIndex'])
             ->name('reports.index')
+            ->middleware('permission:view-reports|view-audit-logs|manage-prizes|manage-users');
+
+        // Report 1: Point Redemptions
+        Route::get('reports/point-redemptions', [ReportController::class, 'pointRedemptionsIndex'])
+            ->name('reports.point-redemptions.index')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+        Route::get('reports/point-redemptions/data', [ReportController::class, 'pointRedemptionsData'])
+            ->name('reports.point-redemptions.data')
             ->middleware('permission:view-reports|manage-prizes|manage-users');
         Route::get('reports/point-redemptions/export', [ReportController::class, 'exportPointRedemptions'])
             ->name('reports.point-redemptions.export')
             ->middleware('permission:view-reports|manage-prizes|manage-users');
+
+        // Report 2: Customer Point Balances
+        Route::get('reports/customer-point-balances', [ReportController::class, 'customerPointBalancesIndex'])
+            ->name('reports.customer-point-balances.index')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+        Route::get('reports/customer-point-balances/data', [ReportController::class, 'customerPointBalancesData'])
+            ->name('reports.customer-point-balances.data')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
         Route::get('reports/customer-point-balances/export', [ReportController::class, 'exportCustomerPointBalances'])
             ->name('reports.customer-point-balances.export')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+
+        // Report 3: Winners
+        Route::get('reports/winners', [ReportController::class, 'winnersIndex'])
+            ->name('reports.winners.index')
+            ->middleware('permission:view-reports|manage-prizes|manage-users');
+        Route::get('reports/winners/data', [ReportController::class, 'winnersData'])
+            ->name('reports.winners.data')
             ->middleware('permission:view-reports|manage-prizes|manage-users');
         Route::get('reports/winners/export', [ReportController::class, 'exportWinners'])
             ->name('reports.winners.export')
             ->middleware('permission:view-reports|manage-prizes|manage-users');
+
+        // Report 4: Audit Logs (Auditor only)
+        Route::get('reports/audit-logs', [ReportController::class, 'auditLogsIndex'])
+            ->name('reports.audit-logs.index')
+            ->middleware('permission:view-audit-logs');
+        Route::get('reports/audit-logs/data', [ReportController::class, 'auditLogsData'])
+            ->name('reports.audit-logs.data')
+            ->middleware('permission:view-audit-logs');
         Route::get('reports/audit-logs/export', [ReportController::class, 'exportAuditLogs'])
             ->name('reports.audit-logs.export')
             ->middleware('permission:view-audit-logs');

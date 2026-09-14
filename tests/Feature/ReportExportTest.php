@@ -124,8 +124,7 @@ class ReportExportTest extends TestCase
         $response = $this->get(route('admin.reports.index'));
         $response->assertOk()
             ->assertViewHas('periods')
-            ->assertViewHas('prizes')
-            ->assertViewHas('auditActions');
+            ->assertViewHas('prizes');
     }
 
     public function test_reports_accessible_by_manager(): void
@@ -162,5 +161,80 @@ class ReportExportTest extends TestCase
 
         $response = $this->get(route('admin.reports.point-redemptions.export'));
         $response->assertForbidden();
+    }
+
+    // =====================================================
+    // Tests for new report pages (load → datatable → export)
+    // =====================================================
+
+    public function test_point_redemptions_report_page_loads(): void
+    {
+        $this->actingAs($this->loginAsSuperAdmin());
+
+        $response = $this->get(route('admin.reports.point-redemptions.index'));
+        $response->assertOk()
+            ->assertViewHas('periods')
+            ->assertViewHas('prizes');
+    }
+
+    public function test_point_redemptions_data_endpoint_returns_datatables_json(): void
+    {
+        $this->actingAs($this->loginAsSuperAdmin());
+
+        $response = $this->get(route('admin.reports.point-redemptions.data', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+        ]));
+        $response->assertOk();
+    }
+
+    public function test_customer_point_balances_report_page_loads(): void
+    {
+        $this->actingAs($this->loginAsSuperAdmin());
+
+        $response = $this->get(route('admin.reports.customer-point-balances.index'));
+        $response->assertOk()
+            ->assertViewHas('periods')
+            ->assertViewHas('prizes');
+    }
+
+    public function test_winners_report_page_loads(): void
+    {
+        $this->actingAs($this->loginAsSuperAdmin());
+
+        $response = $this->get(route('admin.reports.winners.index'));
+        $response->assertOk()
+            ->assertViewHas('periods')
+            ->assertViewHas('prizes');
+    }
+
+    public function test_audit_logs_report_page_loads_for_auditor(): void
+    {
+        $auditor = User::where('email', 'auditor@example.com')->firstOrFail();
+        $this->actingAs($auditor);
+
+        $response = $this->get(route('admin.reports.audit-logs.index'));
+        $response->assertOk()
+            ->assertViewHas('actions')
+            ->assertViewHas('users');
+    }
+
+    public function test_audit_logs_report_page_forbidden_for_manager(): void
+    {
+        $manager = User::where('email', 'manager@example.com')->firstOrFail();
+        $this->actingAs($manager);
+
+        $response = $this->get(route('admin.reports.audit-logs.index'));
+        $response->assertForbidden();
+    }
+
+    public function test_reports_menu_accessible_by_manager(): void
+    {
+        $manager = User::where('email', 'manager@example.com')->firstOrFail();
+        $this->actingAs($manager);
+
+        $response = $this->get(route('admin.reports.index'));
+        $response->assertOk();
     }
 }

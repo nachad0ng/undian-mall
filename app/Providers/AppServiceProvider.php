@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\MenuBuilder;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,5 +22,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        View::composer('layouts.partials.navbar-menu', function ($view) {
+            $view->with('menu', MenuBuilder::build());
+        });
     }
 }

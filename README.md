@@ -338,9 +338,10 @@ undian-mall/
 │   │   │   │   ├── PrizeController.php
 │   │   │   │   ├── RafflePeriodController.php
 │   │   │   │   ├── PaymentTypeController.php
-│   │   │   │   ├── PointExchangeController.php
-│   │   │   │   ├── DrawingController.php
-│   │   │   │   └── AuditLogController.php
+│   │   │   ├── PointExchangeController.php
+│   │   │   ├── DrawingController.php
+│   │   │   ├── AuditLogController.php
+│   │   │   └── ReportController.php
 │   │   │   ├── AuthController.php
 │   │   │   └── DashboardController.php
 │   │   ├── Requests/
@@ -358,6 +359,12 @@ undian-mall/
 │   │   ├── CustomerPointBalance.php
 │   │   ├── Drawing.php
 │   │   └── AuditLog.php
+│   ├── Exports/
+│   │   ├── PointRedemptionsExport.php
+│   │   ├── CustomerPointBalancesExport.php
+│   │   ├── WinnersExport.php
+│   │   ├── AuditLogsExport.php
+│   │   └── ExportHelper.php
 │   └── Services/
 │       ├── PointCalculationService.php
 │       ├── PointRedemptionService.php
@@ -372,10 +379,11 @@ undian-mall/
 │   │   │   ├── permissions/
 │   │   │   ├── users/
 │   │   │   ├── tenants/
-│   │   │   ├── prizes/
-│   │   │   ├── raffle-periods/
-│   │   │   ├── payment-types/
-│   │   │   └── point-exchange/
+│   │   │   │   ├── prizes/
+│   │   │   │   ├── raffle-periods/
+│   │   │   │   ├── payment-types/
+│   │   │   │   ├── point-exchange/
+│   │   │   │   ├── reports/
 │   │   └── layouts/
 │   ├── css/
 │   └── js/
@@ -385,10 +393,11 @@ undian-mall/
 └── tests/
     ├── Unit/
     │   └── PointCalculationTest.php
-    └── Feature/
+    ├── Feature/
       ├── PointRedemptionIntegrationTest.php
       ├── PointDrawingIntegrationTest.php
-      └── AuditLogViewerTest.php
+      ├── AuditLogViewerTest.php
+      └── ReportExportTest.php
 ```
 
 ## Testing
@@ -405,39 +414,54 @@ Test yang ada:
 - **PointRedemptionIntegrationTest** (Feature): test success, snapshot kalkulasi, kunci struk, validasi periode, dan saldo.
 - **PointDrawingIntegrationTest** (Feature): weighted drawing, winner unik, dan pencegahan drawing ganda.
 - **AuditLogViewerTest** (Feature): filter audit dan pembatasan permission.
-- **ReportExportTest** (Feature): export laporan ke Excel (point redemption, customer point balances, winners, audit logs).
-- Status saat ini: `85 tests, 414 assertions` lulus dengan `vendor/bin/phpunit`.
+- **ReportExportTest** (Feature): 20 test — export laporan ke Excel + halaman laporan terpisah dengan DataTables.
+- Status saat ini: `92 tests, 428 assertions` lulus dengan `vendor/bin/phpunit`.
 
 ## Laporan & Export Excel
 
-Sistem menyediakan fitur export laporan ke format Excel (.xlsx) yang dapat diunduh langsung.
+Sistem menyediakan 4 halaman laporan terpisah, masing-masing dengan form filter, tombol **Load Data** untuk menampilkan hasil di DataTables, dan tombol **Unduh Excel** yang aktif setelah data dimuat.
 
 ### Permission Akses Laporan
 
 | Permission | Akses |
 |---|---|
-| `view-reports` | Lihat halaman laporan & export (Manager, CS) |
-| `view-audit-logs` | Export audit log khusus (Auditor saja) |
+| `view-reports` | Akses laporan Poin Redemption, Saldo Poin Customer, dan Pemenang (Manager, CS) |
+| `view-audit-logs` | Akses laporan Audit Log (Auditor saja) |
 | `manage-prizes` | Full export access (Super Admin, Manager) |
 | `manage-users` | Full export access (Super Admin, Manager) |
 
-### Endpoint Export
+### Endpoint Laporan (4 Menu Terpisah)
 
 ```
-GET /admin/reports                                          — Halaman laporan (filter & export)
-GET /admin/reports/point-redemptions/export               — Export Point Redemption ke Excel
-GET /admin/reports/customer-point-balances/export         — Export Saldo Poin Customer ke Excel
-GET /admin/reports/winners/export                         — Export Pemenang Undian ke Excel
-GET /admin/reports/audit-logs/export                      — Export Audit Log ke Excel (Auditor only)
-GET /admin/audit-logs/export                              — Export Audit Log dari halaman audit log
+GET /admin/reports                              — Dashboard daftar 4 laporan
+GET /admin/reports/point-redemptions            — Laporan Poin Redemption (form filter + DataTables)
+GET /admin/reports/point-redemptions/data       — Endpoint DataTables (JSON)
+GET /admin/reports/point-redemptions/export     — Export ke Excel
+GET /admin/reports/customer-point-balances      — Laporan Saldo Poin Customer
+GET /admin/reports/customer-point-balances/data — Endpoint DataTables
+GET /admin/reports/customer-point-balances/export — Export ke Excel
+GET /admin/reports/winners                      — Laporan Pemenang Undian
+GET /admin/reports/winners/data                 — Endpoint DataTables
+GET /admin/reports/winners/export              — Export ke Excel
+GET /admin/reports/audit-logs                   — Laporan Audit Log (Auditor only)
+GET /admin/reports/audit-logs/data              — Endpoint DataTables
+GET /admin/reports/audit-logs/export            — Export ke Excel (Auditor only)
 ```
 
 ### Filter yang Tersedia
 
-- **Point Redemption Export**: periode, hadiah, rentang tanggal
-- **Customer Point Balances Export**: periode, hadiah
-- **Winners Export**: periode, hadiah, rentang tanggal, status publikasi
-- **Audit Logs Export**: action, user, rentang tanggal
+- **Point Redemption**: periode, hadiah, rentang tanggal
+- **Customer Point Balances**: periode, hadiah
+- **Winners**: periode, hadiah, rentang tanggal, status publikasi
+- **Audit Logs**: action, user, rentang tanggal
+
+### Konvensi UI Laporan
+
+Setiap halaman laporan mengikuti pola berikut:
+1. **Form filter** — pilih kriteria laporan
+2. **Load Data** — tombol untuk memuat data ke DataTables (belum ada query ke database sampai tombol diklik)
+3. **DataTables** — tabel hasil yang ditampilkan dengan pagination
+4. **Unduh Excel** — tombol export yang baru muncul setelah data dimuat
 
 ## Todo
 
@@ -463,11 +487,11 @@ Semua todo roadmap saat ini sudah selesai.
   - Approval manual tidak digunakan: redemption sukses bersifat atomic dan final.
   - Audit log tersedia untuk redemption dan drawing.
 
-- [x] **Reporting dan audit viewer**
-  - Tambahkan halaman admin untuk melihat audit redemption dan drawing.
-  - Tambahkan filter berdasarkan periode, user, action, dan rentang waktu.
-  - Tambahkan fitur export laporan ke Excel (point redemption, customer point balances, winners, audit logs).
-  - Tambahkan halaman laporan terpusat di `/admin/reports` dengan form filter export.
+- [x] **Reporting & Excel Export**
+  - 4 halaman laporan terpisah: Poin Redemption, Saldo Poin Customer, Pemenang, Audit Log
+  - Form filter + tombol **Load Data** → DataTables → tombol **Unduh Excel**
+  - Export menggunakan `phpoffice/phpspreadsheet ^3.0`
+  - Endpoint `/admin/reports/*/data` (DataTables JSON) dan `/admin/reports/*/export` (Excel)
 - [x] **Publikasi pemenang**
   - Tambahkan workflow publish/unpublish pemenang.
   - Sediakan tampilan daftar pemenang yang siap ditampilkan ke publik.

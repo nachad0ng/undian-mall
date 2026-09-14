@@ -87,10 +87,7 @@
         color: var(--tblr-body-color) !important;
         font-size: 0.875rem !important;
         padding: 0.6rem 1.25rem !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
+        text-align: center;
     }
 
     .alert {
@@ -132,6 +129,7 @@
                 },
             },
             dom: "<'card-header d-flex align-items-center justify-content-between'l<'ms-auto'f>>" +
+                "r" +
                 "<'table-responsive't>" +
                 "<'card-footer d-flex align-items-center justify-content-between'i<'ms-auto'p>>",
         });
