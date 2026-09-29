@@ -25,9 +25,9 @@
                     </a>
                 </div>
             </div>
-            <div class="nav-item dropdown">
-                <a href="#navbar-notifications" class="nav-link px-0" data-bs-toggle="dropdown" aria-expanded="false"
-                    role="button" aria-label="Show notifications">
+            <div class="nav-item dropdown d-flex me-3">
+                <a href="#navbar-notifications" class="nav-link px-0" data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside" aria-expanded="false" aria-label="Show notifications">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" class="icon icon-1">
@@ -37,7 +37,7 @@
                     </svg>
                     <span class="badge bg-red"></span>
                 </a>
-                <div class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow dropdown-menu-card">
                     <div class="card">
                         <div class="card-body">
                             No new notifications
