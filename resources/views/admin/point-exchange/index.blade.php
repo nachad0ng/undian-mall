@@ -229,9 +229,53 @@
                     submitButton.prop('disabled', true);
                     return;
                 }
-                const points = Math.floor(amount / prize.nominal_per_poin);
-                preview.text(`${points} poin dari Rp ${amount.toLocaleString('id-ID')}`);
-                submitButton.prop('disabled', false);
+                // Hitung cepat sisi klien, lalu sinkronkan bonus via server (debounce).
+                const base = Math.floor(amount / prize.nominal_per_poin);
+                preview.text(`${base} poin dari Rp ${amount.toLocaleString('id-ID')} (menghitung bonus...)`);
+                submitButton.prop('disabled', base < 1);
+                queueServerPreview();
+            }
+
+            let previewTimer = null;
+            let previewSeq = 0;
+
+            function queueServerPreview() {
+                clearTimeout(previewTimer);
+                previewTimer = setTimeout(fetchServerPreview, 400);
+            }
+
+            function fetchServerPreview() {
+                const prizeId = prizeSelect.val();
+                const periodId = periodSelect.val();
+                const amount = Math.round(amountValue());
+                const paymentTypeId = $('#payment_type_id').val();
+                if (!prizeId || !periodId || !amount) return;
+                const seq = ++previewSeq;
+                $.ajax({
+                    url: @json(route('admin.point-exchange.preview')),
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    data: {
+                        period_id: periodId,
+                        prize_id: prizeId,
+                        amount: amount,
+                        payment_type_id: paymentTypeId || null,
+                    },
+                }).done(function(response) {
+                    if (seq !== previewSeq) return;
+                    const c = response.calculation;
+                    let text =
+                        `${c.points_from_amount} poin nominal + ${c.bonus_points} bonus = ${c.total_points} poin (${c.ticket_count} nomor undian)`;
+                    if (response.bonus) {
+                        text += ` — ${response.bonus.payment_type_name} (${response.bonus.label})`;
+                    }
+                    preview.text(text);
+                    submitButton.prop('disabled', c.total_points < 1);
+                }).fail(function(xhr) {
+                    if (seq !== previewSeq) return;
+                    preview.text(xhr.responseJSON?.message || 'Preview gagal dihitung.');
+                    submitButton.prop('disabled', true);
+                });
             }
 
             function loadPrizes() {
@@ -259,6 +303,7 @@
                 updatePreview();
             });
             prizeSelect.on('change', updatePreview);
+            $('#payment_type_id').on('change', updatePreview);
             $('#quick-customer-modal').on('shown.bs.modal', () => $('#quick-customer-name').trigger('focus'));
             $('#quick-customer-form').on('submit', function(event) {
                 event.preventDefault();
@@ -315,7 +360,17 @@
                         notes: $('#notes').val()
                     }
                 }).done(function(response) {
-                    showAlert(response.message, 'success');
+                    const tickets = (response.tickets || []).map((t) => t.ticket_number).join(', ');
+                    const calc = response.calculation || {};
+                    let detail =
+                        `${calc.points_from_amount ?? ''} poin nominal + ${calc.bonus_points ?? 0} bonus = ${calc.total_points ?? ''} poin`;
+                    if (response.bonus) {
+                        detail += ` (${response.bonus.payment_type_name}: ${response.bonus.label})`;
+                    }
+                    showAlert(`${response.message} ${detail}. Nomor: ${tickets}`, 'success');
+                    if (response.redemption?.print_url) {
+                        window.open(response.redemption.print_url, '_blank');
+                    }
                     $('#redemption-form')[0].reset();
                     periodSelect.val(@json($activePeriod?->id));
                     customerSelect.val(null).trigger('change');
@@ -381,6 +436,9 @@
                             return `<div class="btn-group">
                                 <a href="${data.show_url}" class="btn btn-sm btn-icon btn-ghost-primary" title="Detail">
                                     <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="${data.print_url}" target="_blank" class="btn btn-sm btn-icon btn-ghost-secondary" title="Cetak nomor">
+                                    <i class="bi bi-printer"></i>
                                 </a>
                             </div>`;
                         }

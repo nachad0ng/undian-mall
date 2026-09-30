@@ -81,7 +81,8 @@ class PrizeController extends Controller
 
     public function show(Prize $prize)
     {
-        $prize->load(['rafflePeriod', 'winners.customer', 'drawings.executedBy']);
+        $prize->load(['rafflePeriod', 'winners.customer', 'winners.raffleTicket', 'drawings.executedBy']);
+        $prize->loadCount('raffleTickets');
 
         return view('admin.prizes.show', [
             'prize' => $prize,

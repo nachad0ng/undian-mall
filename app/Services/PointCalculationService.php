@@ -13,7 +13,8 @@ class PointCalculationService
     /**
      * Hitung poin untuk satu struk berdasarkan hadiah yang dipilih.
      *
-     * Formula: total_poin = FLOOR(total_belanja / nominal_per_poin) + bonus_poin
+     * Formula add: total_poin = FLOOR(total_belanja / nominal_per_poin) + bonus_poin
+     * Formula multiply: total_poin = FLOOR(FLOOR(total_belanja / nominal_per_poin) * multiplier)
      * Sisa nominal yang tidak genap kelipatan = hangus (tidak di-carry-over).
      */
     public function calculatePointsForPurchase(
@@ -25,13 +26,16 @@ class PointCalculationService
 
         $nominalPerPoin = $this->getNominalPerPoinForPrize($prize);
         $pointsFromAmount = $this->calculatePointsFromAmount($purchase->amount, $nominalPerPoin);
-        $bonusPoints = $this->calculateBonusPoints($purchase, $period);
+        $bonus = $this->calculateBonus($purchase, $period, $pointsFromAmount);
 
         return [
             'nominal_per_poin' => $nominalPerPoin,
             'points_from_amount' => $pointsFromAmount,
-            'bonus_points' => $bonusPoints,
-            'total_points' => $pointsFromAmount + $bonusPoints,
+            'bonus_points' => $bonus['bonus_points'],
+            'bonus_mode' => $bonus['mode'],
+            'bonus_multiplier' => $bonus['multiplier'],
+            'bonus_label' => $bonus['label'],
+            'total_points' => $bonus['total_points'],
             'unused_remainder' => $purchase->amount % $nominalPerPoin, // hangus
         ];
     }
@@ -62,12 +66,24 @@ class PointCalculationService
     }
 
     /**
-     * Hitung bonus poin dari tipe pembayaran.
+     * Hitung bonus dari tipe pembayaran. Kembalikan rincian mode agar bisa
+     * ditampilkan di preview dan disimpan sebagai snapshot historis.
+     *
+     * @return array{bonus_points: int, total_points: int, mode: ?string, multiplier: ?float, label: ?string, rule_id: ?int}
      */
-    private function calculateBonusPoints(Purchase $purchase, RafflePeriod $period): int
+    public function calculateBonus(Purchase $purchase, RafflePeriod $period, int $pointsFromAmount): array
     {
+        $none = [
+            'bonus_points' => 0,
+            'total_points' => $pointsFromAmount,
+            'mode' => null,
+            'multiplier' => null,
+            'label' => null,
+            'rule_id' => null,
+        ];
+
         if (! $purchase->payment_type_id) {
-            return 0;
+            return $none;
         }
 
         $rule = BonusPointRule::findActiveForPeriodAndPaymentType(
@@ -75,7 +91,20 @@ class PointCalculationService
             $purchase->payment_type_id
         );
 
-        return $rule ? $rule->bonus_poin : 0;
+        if (! $rule) {
+            return $none;
+        }
+
+        $applied = $rule->applyToBasePoints($pointsFromAmount);
+
+        return [
+            'bonus_points' => $applied['bonus'],
+            'total_points' => $applied['total'],
+            'mode' => $rule->mode,
+            'multiplier' => $rule->isMultiply() ? (float) $rule->multiplier : null,
+            'label' => $rule->describe(),
+            'rule_id' => $rule->id,
+        ];
     }
 
     /**

@@ -27,6 +27,7 @@ class WinnersExport
             'Tanggal Menang',
             'Periode',
             'Hadiah',
+            'Nomor Undian',
             'Nama Customer',
             'Nomor HP',
             'No. Identitas',
@@ -47,6 +48,7 @@ class WinnersExport
             $sheet->setCellValue(ExportHelper::cell($col++, $row), $item->won_at?->format('d/m/Y H:i'));
             $sheet->setCellValue(ExportHelper::cell($col++, $row), $item->rafflePeriod?->name);
             $sheet->setCellValue(ExportHelper::cell($col++, $row), $item->prize?->name);
+            $sheet->setCellValue(ExportHelper::cell($col++, $row), $item->winning_number ?? $item->raffleTicket?->ticket_number ?? '-');
             $sheet->setCellValue(ExportHelper::cell($col++, $row), $item->customer?->name);
             $sheet->setCellValue(ExportHelper::cell($col++, $row), $item->customer?->phone);
             $sheet->setCellValue(ExportHelper::cell($col++, $row), $item->customer?->identity_number);
@@ -68,7 +70,7 @@ class WinnersExport
     private function getData(): Builder
     {
         $query = Winner::query()
-            ->with(['customer', 'prize', 'rafflePeriod']);
+            ->with(['customer', 'prize', 'rafflePeriod', 'raffleTicket']);
 
         if ($this->periodId) {
             $query->where('raffle_period_id', $this->periodId);

@@ -75,6 +75,23 @@
             <div class="invalid-feedback d-block">{{ $message }}</div>
         @enderror
     </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label required">Digit Nomor Undian</label>
+        @php $ticketsIssued = $prize?->raffleTickets()->exists() ?? false; @endphp
+        @if ($ticketsIssued)
+            <input type="hidden" name="ticket_digits" value="{{ $prize->ticket_digits }}">
+            <input type="number" class="form-control" value="{{ $prize->ticket_digits }}" disabled>
+            <small class="form-hint">Terkunci karena nomor undian sudah diterbitkan.</small>
+        @else
+            <input type="number" name="ticket_digits" min="1" max="6"
+                class="form-control @error('ticket_digits') is-invalid @enderror"
+                value="{{ old('ticket_digits', $prize?->ticket_digits ?? 3) }}" required>
+            <small class="form-hint">Jumlah bola yang diambil, misal 3 → nomor 000–999.</small>
+        @endif
+        @error('ticket_digits')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
 </div>
 
 <div class="mb-3">

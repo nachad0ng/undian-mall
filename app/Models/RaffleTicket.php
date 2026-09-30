@@ -6,35 +6,25 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Winner extends Model
+class RaffleTicket extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'drawing_id',
         'raffle_period_id',
         'prize_id',
         'customer_id',
-        'raffle_ticket_id',
-        'winning_number',
-        'won_at',
-        'is_published',
-        'published_at',
-        'notes',
+        'point_redemption_id',
+        'purchase_id',
+        'sequence_number',
+        'ticket_number',
     ];
 
     protected function casts(): array
     {
         return [
-            'won_at' => 'datetime',
-            'is_published' => 'boolean',
-            'published_at' => 'datetime',
+            'sequence_number' => 'integer',
         ];
-    }
-
-    public function drawing(): BelongsTo
-    {
-        return $this->belongsTo(Drawing::class);
     }
 
     public function rafflePeriod(): BelongsTo
@@ -52,8 +42,13 @@ class Winner extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function raffleTicket(): BelongsTo
+    public function redemption(): BelongsTo
     {
-        return $this->belongsTo(RaffleTicket::class);
+        return $this->belongsTo(PointRedemption::class, 'point_redemption_id');
+    }
+
+    public function purchase(): BelongsTo
+    {
+        return $this->belongsTo(Purchase::class);
     }
 }

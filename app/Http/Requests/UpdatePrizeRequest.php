@@ -20,6 +20,7 @@ class UpdatePrizeRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'quantity' => ['required', 'integer', 'min:1'],
             'nominal_per_poin' => ['required', 'integer', 'min:1'],
+            'ticket_digits' => ['required', 'integer', 'min:1', 'max:6'],
             'sequence' => [
                 'required',
                 'integer',
@@ -38,7 +39,6 @@ class UpdatePrizeRequest extends FormRequest
             $prize = $this->route('prize');
 
             if ($prize && $prize->isUsedInDrawing()) {
-                // Tidak boleh mengubah periode undian jika hadiah sudah diundi
                 if ((int) $this->input('raffle_period_id') !== (int) $prize->raffle_period_id) {
                     $validator->errors()->add('raffle_period_id', 'Periode undian tidak dapat diubah karena hadiah sudah digunakan dalam pengundian.');
                 }
@@ -52,6 +52,11 @@ class UpdatePrizeRequest extends FormRequest
                 if ((int) $this->input('sequence') !== (int) $prize->sequence) {
                     $validator->errors()->add('sequence', 'Urutan hadiah tidak dapat diubah karena sudah digunakan dalam pengundian.');
                 }
+            }
+
+            if ($prize && $prize->raffleTickets()->exists()
+                && (int) $this->input('ticket_digits') !== (int) $prize->ticket_digits) {
+                $validator->errors()->add('ticket_digits', 'Jumlah digit tidak dapat diubah karena nomor undian sudah diterbitkan.');
             }
         });
     }

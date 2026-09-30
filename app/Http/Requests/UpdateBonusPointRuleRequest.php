@@ -7,6 +7,8 @@ use Illuminate\Validation\Rule;
 
 class UpdateBonusPointRuleRequest extends FormRequest
 {
+    use ValidatesBonusPointRuleMode;
+
     public function authorize(): bool
     {
         return $this->user()?->can('manage-prizes') ?? false;
@@ -16,7 +18,7 @@ class UpdateBonusPointRuleRequest extends FormRequest
     {
         $bonusPointRule = $this->route('bonus_point_rule');
 
-        return [
+        return array_merge([
             'raffle_period_id' => ['required', 'exists:raffle_periods,id'],
             'payment_type_id' => [
                 'required',
@@ -25,8 +27,12 @@ class UpdateBonusPointRuleRequest extends FormRequest
                     ->where('raffle_period_id', $this->input('raffle_period_id')))
                     ->ignore($bonusPointRule),
             ],
-            'bonus_poin' => ['required', 'integer', 'min:0'],
             'is_active' => ['required', 'boolean'],
-        ];
+        ], $this->bonusModeRules());
+    }
+
+    public function messages(): array
+    {
+        return $this->bonusModeMessages();
     }
 }

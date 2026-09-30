@@ -9,6 +9,8 @@
                         <h2 class="page-title">Detail Penukaran Poin</h2>
                     </div>
                     <div class="col-auto">
+                        <a href="{{ route('admin.point-exchange.print', $redemption) }}" target="_blank"
+                            class="btn btn-primary"><i class="bi bi-printer me-1"></i>Cetak Nomor</a>
                         <a href="{{ route('admin.point-exchange.history') }}" class="btn btn-outline-secondary">Kembali</a>
                     </div>
                 </div>
@@ -44,7 +46,8 @@
                             </div>
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Poin Didapat</div>
-                                <div class="datagrid-content">{{ $redemption->total_poin_didapat }} poin</div>
+                                <div class="datagrid-content">{{ $redemption->total_poin_didapat }} poin
+                                    ({{ $redemption->raffleTickets->count() }} nomor undian)</div>
                             </div>
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Petugas</div>
@@ -76,6 +79,34 @@
 
                 <div class="card">
                     <div class="card-header">
+                        <h3 class="card-title">Nomor Undian ({{ $redemption->raffleTickets->count() }})</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th>Nomor</th>
+                                    <th>Sequence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($redemption->raffleTickets as $ticket)
+                                    <tr>
+                                        <td><span class="font-monospace fw-bold">{{ $ticket->ticket_number }}</span></td>
+                                        <td>{{ $ticket->sequence_number }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="2" class="text-center text-secondary">Belum ada nomor.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
                         <h3 class="card-title">Detail Perhitungan Poin</h3>
                     </div>
                     <div class="table-responsive">
@@ -97,7 +128,14 @@
                                 </tr>
                                 <tr>
                                     <td>Bonus Dari Tipe Pembayaran</td>
-                                    <td>{{ $pointDetails['poin_bonus_pembayaran'] }} poin</td>
+                                    <td>{{ $pointDetails['poin_bonus_pembayaran'] }} poin
+                                        @if (($pointDetails['bonus_mode'] ?? null) === 'multiply' && $pointDetails['bonus_multiplier'])
+                                            <span class="badge bg-purple-lt">{{ rtrim(rtrim($pointDetails['bonus_multiplier'], '0'), '.') }}x
+                                                lipat</span>
+                                        @elseif(($pointDetails['bonus_mode'] ?? null) === 'add' && $pointDetails['poin_bonus_pembayaran'])
+                                            <span class="badge bg-blue-lt">+{{ $pointDetails['poin_bonus_pembayaran'] }}</span>
+                                        @endif
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Rule Bonus</td>

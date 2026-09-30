@@ -20,6 +20,8 @@ class Prize extends Model
         'quantity',
         'status',
         'active_for_exchange',
+        'ticket_digits',
+        'ticket_counter',
     ];
 
     protected function casts(): array
@@ -29,6 +31,8 @@ class Prize extends Model
             'sequence' => 'integer',
             'nominal_per_poin' => 'integer',
             'active_for_exchange' => 'boolean',
+            'ticket_digits' => 'integer',
+            'ticket_counter' => 'integer',
         ];
     }
 
@@ -50,6 +54,11 @@ class Prize extends Model
     public function pointRedemptions(): HasMany
     {
         return $this->hasMany(PointRedemption::class);
+    }
+
+    public function raffleTickets(): HasMany
+    {
+        return $this->hasMany(RaffleTicket::class);
     }
 
     public function customerBalances(): HasMany

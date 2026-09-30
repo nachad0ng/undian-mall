@@ -12,6 +12,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\PointCalculationService;
 use App\Services\PointRedemptionService;
+use App\Services\RaffleTicketService;
 use Illuminate\Database\Seeder;
 
 class PointRedemptionSeeder extends Seeder
@@ -26,7 +27,7 @@ class PointRedemptionSeeder extends Seeder
             ->keyBy('code');
         $cs = User::where('email', 'customerservice@example.com')->firstOrFail();
         $prizes = Prize::query()->where('raffle_period_id', $period->id)->orderBy('sequence')->get();
-        $service = new PointRedemptionService(new PointCalculationService);
+        $service = new PointRedemptionService(new PointCalculationService, new RaffleTicketService);
 
         foreach ($prizes as $prizeIndex => $prize) {
             foreach ($customers->slice($prizeIndex * 5, 5) as $customerIndex => $customer) {

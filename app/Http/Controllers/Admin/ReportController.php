@@ -294,7 +294,7 @@ class ReportController extends Controller
         ]);
 
         $query = Winner::query()
-            ->with(['customer', 'prize', 'rafflePeriod']);
+            ->with(['customer', 'prize', 'rafflePeriod', 'raffleTicket']);
 
         if ($validated['period_id'] ?? null) {
             $query->where('raffle_period_id', $validated['period_id']);
@@ -323,6 +323,7 @@ class ReportController extends Controller
             ->addColumn('email', fn ($r) => $r->customer->email)
             ->addColumn('period_name', fn ($r) => $r->rafflePeriod->name)
             ->addColumn('prize_name', fn ($r) => $r->prize->name)
+            ->addColumn('winning_number', fn ($r) => $r->winning_number ?? $r->raffleTicket?->ticket_number ?? '-')
             ->addColumn('won_at_formatted', fn ($r) => $r->won_at->format('d M Y H:i'))
             ->addColumn('published_status', fn ($r) => $r->is_published ? 'Dipublikasikan' : 'Belum')
             ->addColumn('published_at_formatted', fn ($r) => $r->published_at?->format('d M Y H:i') ?? '-')

@@ -60,6 +60,7 @@
                         <tr>
                             <th>Tanggal</th>
                             <th>Customer</th>
+                            <th>Nomor Undian</th>
                             <th>Phone</th>
                             <th>Periode</th>
                             <th>Hadiah</th>
@@ -122,6 +123,12 @@
                             {
                                 data: 'customer_name',
                                 name: 'customer.name'
+                            },
+                            {
+                                data: 'winning_number',
+                                name: 'winning_number',
+                                orderable: false,
+                                searchable: false
                             },
                             {
                                 data: 'phone',

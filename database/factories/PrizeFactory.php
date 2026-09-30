@@ -19,6 +19,8 @@ class PrizeFactory extends Factory
             'description' => fake()->sentence(),
             'quantity' => 1,
             'nominal_per_poin' => 100000,
+            'ticket_digits' => 3,
+            'ticket_counter' => 0,
             'sequence' => fake()->unique()->numberBetween(1, 9999),
             'status' => 'active',
             'active_for_exchange' => true,

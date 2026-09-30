@@ -55,6 +55,7 @@ class PrizeManagementTest extends TestCase
                 'raffle_period_id' => '',
                 'name' => '',
                 'quantity' => 0,
+                'ticket_digits' => 3,
                 'sequence' => 1,
                 'status' => 'active',
             ])
@@ -67,6 +68,7 @@ class PrizeManagementTest extends TestCase
                 'raffle_period_id' => $period->id,
                 'name' => 'Hadiah Duplikat Urutan',
                 'quantity' => 1,
+                'ticket_digits' => 3,
                 'sequence' => 1,
                 'status' => 'active',
             ])
@@ -88,6 +90,7 @@ class PrizeManagementTest extends TestCase
                 'description' => 'Mobil',
                 'quantity' => 1,
                 'nominal_per_poin' => 1000000,
+                'ticket_digits' => 3,
                 'sequence' => 1,
                 'status' => 'active',
             ])
@@ -99,6 +102,7 @@ class PrizeManagementTest extends TestCase
                 'name' => 'Hadiah Kedua',
                 'quantity' => 2,
                 'nominal_per_poin' => 500000,
+                'ticket_digits' => 4,
                 'sequence' => 2,
                 'status' => 'active',
             ])
@@ -125,6 +129,7 @@ class PrizeManagementTest extends TestCase
                 'name' => 'Hadiah Utama Updated',
                 'quantity' => 1,
                 'nominal_per_poin' => 1000000,
+                'ticket_digits' => 3,
                 'sequence' => 2,
                 'status' => 'active',
             ])

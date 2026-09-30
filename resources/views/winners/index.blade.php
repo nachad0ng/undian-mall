@@ -36,6 +36,11 @@
                                     <div class="text-secondary small">{{ $winner->rafflePeriod->name }}</div>
                                     <h3 class="card-title mt-1">{{ $winner->customer->name }}</h3>
                                     <div>{{ $winner->prize->name }}</div>
+                                    @if ($winner->winning_number ?? $winner->raffleTicket?->ticket_number)
+                                        <div class="mt-1"><span class="badge bg-primary-lt font-monospace">No.
+                                                {{ $winner->winning_number ?? $winner->raffleTicket?->ticket_number }}</span>
+                                        </div>
+                                    @endif
                                     <div class="text-secondary small mt-2">{{ $winner->won_at->format('d M Y H:i') }}</div>
                                 </div>
                             </div>

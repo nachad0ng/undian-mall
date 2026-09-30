@@ -30,7 +30,7 @@
                                 <tr>
                                     <th>Periode</th>
                                     <th>Tipe Pembayaran</th>
-                                    <th>Bonus Poin</th>
+                                    <th>Mode Bonus</th>
                                     <th>Status</th>
                                     <th class="w-1">Aksi</th>
                                 </tr>
@@ -41,7 +41,13 @@
                                         <td>{{ $rule->rafflePeriod?->name ?? '-' }}</td>
                                         <td><strong>{{ $rule->paymentType?->name ?? '-' }}</strong><br><span
                                                 class="text-secondary">{{ $rule->paymentType?->code }}</span></td>
-                                        <td>+{{ $rule->bonus_poin }} poin</td>
+                                        <td>
+                                            @if ($rule->mode === 'multiply')
+                                                <span class="badge bg-purple-lt">{{ $rule->describe() }}</span>
+                                            @else
+                                                <span class="badge bg-blue-lt">+{{ $rule->bonus_poin }} poin</span>
+                                            @endif
+                                        </td>
                                         <td><span
                                                 class="badge bg-{{ $rule->is_active ? 'success' : 'secondary' }}-lt">{{ $rule->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                                         </td>

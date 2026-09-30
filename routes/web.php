@@ -128,6 +128,15 @@ Route::middleware('auth')->group(function () {
         Route::post('prizes/{prize}/draw', [DrawingController::class, 'draw'])
             ->name('prizes.draw')
             ->middleware('permission:manage-draws');
+        Route::get('prizes/{prize}/manual-preview', [DrawingController::class, 'manualPreview'])
+            ->name('prizes.manual-preview')
+            ->middleware('permission:manage-draws');
+        Route::post('prizes/{prize}/manual-draw', [DrawingController::class, 'manualDraw'])
+            ->name('prizes.manual-draw')
+            ->middleware('permission:manage-draws');
+        Route::get('prizes/{prize}/tickets/{ticketNumber}', [DrawingController::class, 'lookupTicket'])
+            ->name('prizes.ticket-lookup')
+            ->middleware('permission:manage-draws');
         Route::post('winners/{winner}/publish', [DrawingController::class, 'publishWinner'])
             ->name('winners.publish')
             ->middleware('permission:manage-draws');
@@ -165,6 +174,11 @@ Route::middleware('auth')->group(function () {
             ->name('customers.purchases')
             ->middleware('permission:manage-prizes');
 
+        // Preview kalkulasi poin + bonus pembayaran sebelum proses
+        Route::post('point-exchange/preview', [PointExchangeController::class, 'preview'])
+            ->name('point-exchange.preview')
+            ->middleware('permission:manage-prizes');
+
         // Penukaran poin: customer pilih hadiah + serahkan struk
         Route::post('point-exchange', [PointExchangeController::class, 'store'])
             ->name('point-exchange.store')
@@ -178,6 +192,10 @@ Route::middleware('auth')->group(function () {
         // History penukaran poin (admin)
         Route::get('point-exchange', [PointExchangeController::class, 'history'])
             ->name('point-exchange.history')
+            ->middleware('permission:manage-prizes');
+
+        Route::get('point-exchange/{redemption}/print', [PointExchangeController::class, 'print'])
+            ->name('point-exchange.print')
             ->middleware('permission:manage-prizes');
 
         Route::get('point-exchange/{redemption}', [PointExchangeController::class, 'show'])

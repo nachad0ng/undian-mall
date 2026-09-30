@@ -20,6 +20,7 @@ class StorePrizeRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'quantity' => ['required', 'integer', 'min:1'],
             'nominal_per_poin' => ['required', 'integer', 'min:1'],
+            'ticket_digits' => ['required', 'integer', 'min:1', 'max:6'],
             'sequence' => [
                 'required',
                 'integer',

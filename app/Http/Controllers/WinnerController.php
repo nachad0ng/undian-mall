@@ -17,7 +17,7 @@ class WinnerController extends Controller
 
         $winners = Winner::query()
             ->where('is_published', true)
-            ->with(['customer', 'prize', 'rafflePeriod'])
+            ->with(['customer', 'prize', 'rafflePeriod', 'raffleTicket'])
             ->when($request->integer('period_id'), fn ($query, $periodId) => $query->where('raffle_period_id', $periodId))
             ->latest('won_at')
             ->paginate(24)

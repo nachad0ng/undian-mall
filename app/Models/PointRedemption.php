@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PointRedemption extends Model
 {
@@ -22,6 +23,8 @@ class PointRedemption extends Model
         'poin_dari_nominal',
         'poin_bonus_pembayaran',
         'bonus_rule_id_snapshot',
+        'bonus_mode_snapshot',
+        'bonus_multiplier_snapshot',
         'payment_type_code_snapshot',
         'payment_type_name_snapshot',
         'total_poin_didapat',
@@ -38,6 +41,7 @@ class PointRedemption extends Model
             'poin_dari_nominal' => 'integer',
             'poin_bonus_pembayaran' => 'integer',
             'bonus_rule_id_snapshot' => 'integer',
+            'bonus_multiplier_snapshot' => 'decimal:2',
             'total_poin_didapat' => 'integer',
         ];
     }
@@ -65,6 +69,11 @@ class PointRedemption extends Model
     public function cs(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cs_id');
+    }
+
+    public function raffleTickets(): HasMany
+    {
+        return $this->hasMany(RaffleTicket::class);
     }
 
     public function scopeSuccessful($query)

@@ -11,6 +11,7 @@ use App\Models\RafflePeriod;
 use App\Models\User;
 use App\Services\PointCalculationService;
 use App\Services\PointRedemptionService;
+use App\Services\RaffleTicketService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,7 +26,8 @@ class PointRedemptionIntegrationTest extends TestCase
     {
         parent::setUp();
         $this->service = new PointRedemptionService(
-            new PointCalculationService
+            new PointCalculationService,
+            new RaffleTicketService
         );
     }
 

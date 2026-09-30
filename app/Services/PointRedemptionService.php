@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\DB;
 class PointRedemptionService
 {
     public function __construct(
-        private PointCalculationService $calculator
+        private PointCalculationService $calculator,
+        private RaffleTicketService $tickets
     ) {}
 
     /**
@@ -50,6 +51,10 @@ class PointRedemptionService
 
             // Hitung poin
             $calc = $this->calculator->calculatePointsForPurchase($purchase, $prize, $period);
+
+            if ($calc['total_points'] < 1) {
+                throw new \RuntimeException('Nominal struk kurang untuk mendapatkan nomor undian.');
+            }
             $purchase->loadMissing('paymentType');
             $bonusRule = $purchase->payment_type_id
                 ? BonusPointRule::findActiveForPeriodAndPaymentType($period->id, $purchase->payment_type_id)
@@ -68,6 +73,8 @@ class PointRedemptionService
                 'poin_dari_nominal' => $calc['points_from_amount'],
                 'poin_bonus_pembayaran' => $calc['bonus_points'],
                 'bonus_rule_id_snapshot' => $bonusRule?->id,
+                'bonus_mode_snapshot' => $bonusRule?->mode,
+                'bonus_multiplier_snapshot' => $bonusRule?->isMultiply() ? $bonusRule->multiplier : null,
                 'payment_type_code_snapshot' => $purchase->paymentType?->code,
                 'payment_type_name_snapshot' => $purchase->paymentType?->name,
                 'total_poin_didapat' => $calc['total_points'],
@@ -77,6 +84,9 @@ class PointRedemptionService
 
             // Kunci struk
             $purchase->markAsRedeemed();
+
+            // Terbitkan nomor undian: 1 poin = 1 nomor, sequence per hadiah
+            $issuedTickets = $this->tickets->issueForRedemption($redemption, $calc['total_points']);
 
             // Update saldo poin customer
             $balance = CustomerPointBalance::findOrCreateForCustomerPeriodPrize(
@@ -96,9 +106,12 @@ class PointRedemptionService
                     'purchase_id' => $purchase->id,
                     'prize_id' => $prize->id,
                     'total_points' => $calc['total_points'],
+                    'tickets' => collect($issuedTickets)->map(fn ($t) => $t->ticket_number)->all(),
                     'calculation' => $calc,
                 ],
             ]);
+
+            $redemption->setRelation('raffleTickets', collect($issuedTickets));
 
             return $redemption;
         });

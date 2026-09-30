@@ -112,7 +112,7 @@ class PointExchangeController extends Controller
             $calc = $this->calculator->calculatePointsForPurchase($purchase, $prize, $period);
 
             $bonusInfo = null;
-            if ($purchase->payment_type_id && $calc['bonus_points'] > 0) {
+            if ($purchase->payment_type_id && ($calc['bonus_mode'] || $calc['bonus_points'] > 0)) {
                 $bonusRule = BonusPointRule::findActiveForPeriodAndPaymentType(
                     $period->id,
                     $purchase->payment_type_id,
@@ -121,7 +121,10 @@ class PointExchangeController extends Controller
                     $bonusInfo = [
                         'payment_type_name' => $bonusRule->paymentType->name,
                         'payment_code' => $bonusRule->paymentType->code,
-                        'bonus_points' => $bonusRule->bonus_poin,
+                        'mode' => $bonusRule->mode,
+                        'label' => $bonusRule->describe(),
+                        'bonus_points' => $calc['bonus_points'],
+                        'multiplier' => $calc['bonus_multiplier'],
                     ];
                 }
             }
@@ -140,11 +143,18 @@ class PointExchangeController extends Controller
                     'nominal_struk' => $redemption->nominal_struk,
                     'total_poin' => $redemption->total_poin_didapat,
                     'status' => $redemption->status,
+                    'print_url' => route('admin.point-exchange.print', $redemption),
                 ],
+                'tickets' => $redemption->raffleTickets->map(fn ($t) => [
+                    'sequence_number' => $t->sequence_number,
+                    'ticket_number' => $t->ticket_number,
+                ])->all(),
                 'calculation' => [
                     'nominal_per_poin' => $calc['nominal_per_poin'],
                     'points_from_amount' => $calc['points_from_amount'],
                     'bonus_points' => $calc['bonus_points'],
+                    'bonus_mode' => $calc['bonus_mode'],
+                    'bonus_label' => $calc['bonus_label'],
                     'total_points' => $calc['total_points'],
                     'unused_remainder' => $calc['unused_remainder'],
                 ],
@@ -156,6 +166,61 @@ class PointExchangeController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    // ---------------------------------------------------------------------
+    // API: preview kalkulasi poin sebelum proses (termasuk bonus pembayaran)
+    // ---------------------------------------------------------------------
+    public function preview(Request $request)
+    {
+        $validated = $request->validate([
+            'period_id' => ['required', 'integer', 'exists:raffle_periods,id'],
+            'prize_id' => ['required', 'integer', 'exists:prizes,id'],
+            'amount' => ['required', 'integer', 'min:1'],
+            'payment_type_id' => ['nullable', 'integer', 'exists:payment_types,id'],
+        ]);
+
+        $period = RafflePeriod::findOrFail($validated['period_id']);
+        $prize = Prize::findOrFail($validated['prize_id']);
+
+        if ($prize->raffle_period_id !== $period->id || ! $prize->canBeExchanged()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hadiah tidak bisa dipakai untuk tukar poin pada periode ini.',
+            ], 422);
+        }
+
+        $purchase = new Purchase([
+            'raffle_period_id' => $period->id,
+            'amount' => $validated['amount'],
+            'payment_type_id' => $validated['payment_type_id'] ?? null,
+        ]);
+        $purchase->setRelation('rafflePeriod', $period);
+        if ($validated['payment_type_id'] ?? null) {
+            $purchase->setRelation('paymentType', PaymentType::find($validated['payment_type_id']));
+        }
+
+        $calc = $this->calculator->calculatePointsForPurchase($purchase, $prize, $period);
+
+        $bonus = null;
+        if ($calc['bonus_mode']) {
+            $rule = BonusPointRule::findActiveForPeriodAndPaymentType($period->id, (int) $validated['payment_type_id']);
+            if ($rule) {
+                $bonus = [
+                    'payment_type_name' => $rule->paymentType->name,
+                    'payment_code' => $rule->paymentType->code,
+                    'mode' => $rule->mode,
+                    'label' => $rule->describe(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'calculation' => $calc,
+            'bonus' => $bonus,
+            'ticket_count' => $calc['total_points'],
+        ]);
     }
 
     // ---------------------------------------------------------------------
@@ -229,6 +294,7 @@ class PointExchangeController extends Controller
                 ->addColumn('redeemed_at_formatted', fn (PointRedemption $r) => $r->redeemed_at->format('d M Y H:i'))
                 ->addColumn('actions', fn (PointRedemption $r) => [
                     'show_url' => route('admin.point-exchange.show', ['redemption' => $r->getKey()]),
+                    'print_url' => route('admin.point-exchange.print', ['redemption' => $r->getKey()]),
                 ])
                 // Definisikan eksplisit cara search & sort untuk kolom relasi,
                 // supaya Yajra TIDAK menebak/melakukan join otomatis lagi.
@@ -290,8 +356,8 @@ class PointExchangeController extends Controller
         }
 
         $redemption->load(['customer', 'prize', 'purchase', 'cs', 'rafflePeriod']);
-
         $redemption->purchase?->load('paymentType');
+        $redemption->loadMissing(['raffleTickets' => fn ($q) => $q->orderBy('sequence_number')]);
 
         $pointDetails = [
             'nominal_per_poin' => $redemption->nominal_per_poin_snapshot
@@ -304,6 +370,8 @@ class PointExchangeController extends Controller
                         : 0)),
             'poin_bonus_pembayaran' => $redemption->poin_bonus_pembayaran ?? 0,
             'bonus_rule_id' => $redemption->bonus_rule_id_snapshot,
+            'bonus_mode' => $redemption->bonus_mode_snapshot,
+            'bonus_multiplier' => $redemption->bonus_multiplier_snapshot,
             'payment_type_name' => $redemption->payment_type_name_snapshot
                 ?? $redemption->purchase?->paymentType?->name,
             'payment_type_code' => $redemption->payment_type_code_snapshot
@@ -311,5 +379,26 @@ class PointExchangeController extends Controller
         ];
 
         return view('admin.point-exchange.show', compact('redemption', 'pointDetails'));
+    }
+
+    /**
+     * Struk thermal 80mm berisi nomor undian. Dibuka di tab/jendela baru lalu auto-print.
+     */
+    public function print(PointRedemption $redemption)
+    {
+        $authUser = request()->user();
+        if (! $authUser->can('manage-prizes') && ! $authUser->can('manage-users')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $redemption->load([
+            'customer',
+            'prize.rafflePeriod',
+            'purchase.tenant',
+            'cs',
+            'raffleTickets' => fn ($q) => $q->orderBy('sequence_number'),
+        ]);
+
+        return view('admin.point-exchange.print', compact('redemption'));
     }
 }

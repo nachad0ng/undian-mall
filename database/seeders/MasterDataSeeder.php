@@ -27,10 +27,10 @@ class MasterDataSeeder extends Seeder
         );
 
         $prizes = [
-            ['name' => 'Mobil', 'description' => 'Hadiah utama berupa mobil.', 'quantity' => 1, 'sequence' => 1, 'nominal_per_poin' => 1_000_000],
-            ['name' => 'Motor', 'description' => 'Hadiah motor untuk pemenang.', 'quantity' => 2, 'sequence' => 2, 'nominal_per_poin' => 250_000],
-            ['name' => 'Kulkas', 'description' => 'Hadiah kulkas rumah tangga.', 'quantity' => 3, 'sequence' => 3, 'nominal_per_poin' => 500_000],
-            ['name' => 'Sepeda', 'description' => 'Hadiah sepeda untuk peserta.', 'quantity' => 5, 'sequence' => 4, 'nominal_per_poin' => 1_000_000],
+            ['name' => 'Mobil', 'description' => 'Hadiah utama berupa mobil.', 'quantity' => 1, 'sequence' => 1, 'nominal_per_poin' => 1_000_000, 'ticket_digits' => 4],
+            ['name' => 'Motor', 'description' => 'Hadiah motor untuk pemenang.', 'quantity' => 2, 'sequence' => 2, 'nominal_per_poin' => 250_000, 'ticket_digits' => 3],
+            ['name' => 'Kulkas', 'description' => 'Hadiah kulkas rumah tangga.', 'quantity' => 3, 'sequence' => 3, 'nominal_per_poin' => 500_000, 'ticket_digits' => 3],
+            ['name' => 'Sepeda', 'description' => 'Hadiah sepeda untuk peserta.', 'quantity' => 5, 'sequence' => 4, 'nominal_per_poin' => 1_000_000, 'ticket_digits' => 3],
         ];
 
         foreach ($prizes as $prizeData) {

@@ -13,7 +13,9 @@ class BonusPointRule extends Model
     protected $fillable = [
         'raffle_period_id',
         'payment_type_id',
+        'mode',
         'bonus_poin',
+        'multiplier',
         'is_active',
     ];
 
@@ -21,6 +23,7 @@ class BonusPointRule extends Model
     {
         return [
             'bonus_poin' => 'integer',
+            'multiplier' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }
@@ -41,5 +44,36 @@ class BonusPointRule extends Model
             ->where('payment_type_id', $paymentTypeId)
             ->where('is_active', true)
             ->first();
+    }
+
+    public function isMultiply(): bool
+    {
+        return $this->mode === 'multiply';
+    }
+
+    /**
+     * Terapkan rule ke poin nominal. Kembalikan [total, bonus].
+     * add: total = base + bonus_poin. multiply: total = base * multiplier.
+     *
+     * @return array{total: int, bonus: int}
+     */
+    public function applyToBasePoints(int $basePoints): array
+    {
+        if ($this->isMultiply()) {
+            $total = (int) floor($basePoints * (float) $this->multiplier);
+
+            return ['total' => $total, 'bonus' => $total - $basePoints];
+        }
+
+        return ['total' => $basePoints + $this->bonus_poin, 'bonus' => $this->bonus_poin];
+    }
+
+    public function describe(): string
+    {
+        if ($this->isMultiply()) {
+            return rtrim(rtrim((string) $this->multiplier, '0'), '.').'x lipat';
+        }
+
+        return '+'.$this->bonus_poin.' poin';
     }
 }

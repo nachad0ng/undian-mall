@@ -16,7 +16,9 @@ class BonusPointRuleFactory extends Factory
         return [
             'raffle_period_id' => RafflePeriod::factory(),
             'payment_type_id' => PaymentType::factory(),
+            'mode' => 'add',
             'bonus_poin' => $this->faker->numberBetween(0, 10),
+            'multiplier' => null,
             'is_active' => true,
         ];
     }
@@ -24,7 +26,9 @@ class BonusPointRuleFactory extends Factory
     public function activeBonus(int $bonusPoints = 5): static
     {
         return $this->state([
+            'mode' => 'add',
             'bonus_poin' => $bonusPoints,
+            'multiplier' => null,
             'is_active' => true,
         ]);
     }
@@ -32,7 +36,19 @@ class BonusPointRuleFactory extends Factory
     public function zeroBonus(): static
     {
         return $this->state([
+            'mode' => 'add',
             'bonus_poin' => 0,
+            'multiplier' => null,
+            'is_active' => true,
+        ]);
+    }
+
+    public function multiply(float $multiplier = 2.0): static
+    {
+        return $this->state([
+            'mode' => 'multiply',
+            'bonus_poin' => 0,
+            'multiplier' => $multiplier,
             'is_active' => true,
         ]);
     }
